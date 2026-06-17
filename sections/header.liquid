@@ -1,0 +1,398 @@
+{%- comment -%}
+  Bano Theme - Header Section
+  Premium Header with multiple style variants
+{%- endcomment -%}
+
+{%- liquid
+  assign header_style = settings.header_style
+  assign logo_position = settings.logo_position
+  assign sticky_header = settings.header_sticky
+-%}
+
+{%- style -%}
+  .header {
+    --header-height: 72px;
+    height: var(--header-height);
+  }
+  
+  .header--transparent {
+    background-color: transparent;
+  }
+  
+  .header--transparent .header__link,
+  .header--transparent .header__icon-btn {
+    color: inherit;
+  }
+  
+  .header--center .header__inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+  }
+  
+  .header--center .header__center {
+    justify-self: center;
+  }
+  
+  .header--center .header__right {
+    justify-self: end;
+  }
+  
+  .header--minimal .header__nav {
+    display: none;
+  }
+  
+  .header--scrolled {
+    background-color: var(--color-background);
+  }
+  
+  .header--hidden {
+    transform: translateY(-100%);
+  }
+  
+  .header__search-btn[aria-expanded="true"] {
+    background-color: var(--color-background-secondary);
+  }
+  
+  @media (max-width: 768px) {
+    .header__nav {
+      display: none !important;
+    }
+  }
+{%- endstyle -%}
+
+<header 
+  class="header sticky top-0 z-[1100] bg-background transition-transform duration-300"
+  data-header
+  data-section-id="{{ section.id }}"
+  data-section-type="header"
+>
+  <div class="header__inner container-custom h-full flex items-center {% if header_style == 'center' %}grid-cols-3{% else %}justify-between{% endif %} gap-4">
+    
+    {%- if header_style != 'center' -%}
+      <!-- Left Section -->
+      <div class="header__left flex items-center gap-4">
+        {%- if section.settings.menu != blank -%}
+          <button 
+            type="button"
+            class="header__menu-btn lg:hidden p-2 -ml-2 hover:bg-background-secondary rounded-md transition-colors"
+            data-menu-toggle
+            aria-label="{{ 'general.accessibility.menu' | t }}"
+            aria-expanded="false"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        {%- endif -%}
+        
+        {%- if section.blocks.size > 0 -%}
+          {%- render 'mega-menu', blocks: section.blocks -%}
+        {%- else -%}
+          <nav class="header__nav hidden lg:flex items-center gap-6">
+            {%- for link in section.settings.menu.links -%}
+              <div class="relative" data-nav-item>
+                <a 
+                  href="{{ link.url }}" 
+                  class="header__link flex items-center gap-1 py-2 text-sm font-medium text-text-primary hover:text-primary-600 transition-colors"
+                  {% if link.active %}aria-current="page"{% endif %}
+                >
+                  {{ link.title }}
+                  {%- if link.links.size > 0 -%}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  {%- endif -%}
+                </a>
+                
+                {%- if link.links.size > 0 -%}
+                  <div class="nav-dropdown absolute top-full left-0 mt-2 w-56 bg-background rounded-lg shadow-xl border border-border opacity-0 invisible translate-y-2 transition-all duration-200 z-50" data-dropdown>
+                    <div class="py-2">
+                      {%- for childlink in link.links -%}
+                        <a 
+                          href="{{ childlink.url }}" 
+                          class="block px-4 py-2 text-sm text-text-primary hover:bg-background-secondary hover:text-primary-600 transition-colors"
+                          {% if childlink.active %}aria-current="page"{% endif %}
+                        >
+                          {{ childlink.title }}
+                        </a>
+                      {%- endfor -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          </nav>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+    
+    <!-- Logo / Center Section -->
+    <div class="header__center {% if header_style == 'center' %}flex justify-center{% endif %}">
+      <a href="{{ routes.root_url }}" class="header__logo flex items-center">
+        {%- if settings.logo != blank -%}
+          <img 
+            src="{{ settings.logo | image_url: width: settings.logo_width | times: 2 }}"
+            alt="{{ shop.name }}"
+            width="{{ settings.logo_width }}"
+            height="auto"
+            loading="eager"
+            class="header__logo-img"
+          >
+        {%- else -%}
+          <span class="text-xl font-bold text-text-primary">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+    
+    {%- if header_style == 'center' -%}
+      <!-- Center Style: Navigation in middle -->
+      <div class="header__nav hidden lg:flex items-center justify-center gap-6">
+        {%- for link in section.settings.menu.links -%}
+          <a 
+            href="{{ link.url }}" 
+            class="header__link py-2 text-sm font-medium text-text-primary hover:text-primary-600 transition-colors"
+            {% if link.active %}aria-current="page"{% endif %}
+          >
+            {{ link.title }}
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+    
+    <!-- Right Section -->
+    <div class="header__right flex items-center gap-2">
+      <!-- Search Button -->
+      <button 
+        type="button"
+        class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors"
+        data-search-toggle
+        aria-label="{{ 'general.accessibility.search' | t }}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+      
+      <!-- Dark Mode Toggle -->
+      {%- if settings.dark_mode_enabled -%}
+        <button 
+          type="button"
+          class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors"
+          data-dark-mode-toggle
+          aria-label="Toggle dark mode"
+          aria-pressed="false"
+        >
+          <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+        </button>
+      {%- endif -%}
+      
+      <!-- Account -->
+      <a 
+        href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+        class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors hidden sm:block"
+        aria-label="{{ 'general.accessibility.account' | t }}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </a>
+      
+      <!-- Wishlist -->
+      <button 
+        type="button"
+        class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors relative hidden sm:block"
+        data-wishlist-toggle
+        aria-label="{{ 'header.account.wishlist' | t }}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+        <span 
+          class="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs font-medium rounded-full flex items-center justify-center opacity-0 transition-opacity"
+          data-wishlist-count
+        >0</span>
+      </button>
+      
+      <!-- Compare -->
+      <button 
+        type="button"
+        class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors relative hidden md:block"
+        data-compare-toggle
+        aria-label="Compare products"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        <span 
+          class="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs font-medium rounded-full flex items-center justify-center opacity-0 transition-opacity"
+          data-compare-count
+        >0</span>
+      </button>
+      
+      <!-- Cart -->
+      <button 
+        type="button"
+        class="header__icon-btn p-2 hover:bg-background-secondary rounded-full transition-colors relative"
+        data-cart-toggle
+        aria-label="{{ 'general.accessibility.cart' | t }}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+        </svg>
+        <span 
+          class="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs font-medium rounded-full flex items-center justify-center transition-opacity"
+          data-cart-count
+          {% if cart.item_count == 0 %}style="opacity: 0"{% endif %}
+        >{{ cart.item_count }}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div 
+  id="MobileMenu" 
+  class="fixed inset-0 z-[1200] pointer-events-none"
+  data-mobile-menu
+>
+  <!-- Overlay -->
+  <div 
+    class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-mobile-menu-overlay
+  ></div>
+  
+  <!-- Menu Panel -->
+  <div 
+    class="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-background transform -translate-x-full transition-transform duration-300"
+    data-mobile-menu-panel
+  >
+    <div class="flex flex-col h-full">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-border">
+        <span class="text-lg font-semibold">Menu</span>
+        <button 
+          type="button"
+          class="p-2 hover:bg-background-secondary rounded-full transition-colors"
+          data-menu-close
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto p-4">
+        {%- for link in section.settings.menu.links -%}
+          <div class="border-b border-border py-3">
+            <a 
+              href="{{ link.url }}" 
+              class="block text-base font-medium text-text-primary py-2"
+              {% if link.active %}aria-current="page"{% endif %}
+            >
+              {{ link.title }}
+            </a>
+            
+            {%- if link.links.size > 0 -%}
+              <div class="pl-4 mt-2 space-y-2">
+                {%- for childlink in link.links -%}
+                  <a 
+                    href="{{ childlink.url }}" 
+                    class="block text-sm text-text-secondary py-1"
+                    {% if childlink.active %}aria-current="page"{% endif %}
+                  >
+                    {{ childlink.title }}
+                  </a>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </nav>
+      
+      <!-- Footer -->
+      <div class="p-4 border-t border-border">
+        <a href="{{ routes.account_login_url }}" class="flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          {{ 'header.account.login' | t }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mobile Menu Toggle
+  document.querySelector('[data-menu-toggle]')?.addEventListener('click', () => {
+    const menu = document.getElementById('MobileMenu');
+    const overlay = menu.querySelector('[data-mobile-menu-overlay]');
+    const panel = menu.querySelector('[data-mobile-menu-panel]');
+    
+    menu.classList.remove('pointer-events-none');
+    overlay.classList.remove('opacity-0');
+    panel.classList.remove('-translate-x-full');
+  });
+
+  document.querySelector('[data-menu-close]')?.addEventListener('click', () => {
+    const menu = document.getElementById('MobileMenu');
+    const overlay = menu.querySelector('[data-mobile-menu-overlay]');
+    const panel = menu.querySelector('[data-mobile-menu-panel]');
+    
+    menu.classList.add('pointer-events-none');
+    overlay.classList.add('opacity-0');
+    panel.classList.add('-translate-x-full');
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "section",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "Menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mega_menu",
+      "default": true,
+      "label": "Enable Mega Menu"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "mega_menu",
+      "name": "Mega Menu",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Menu Title"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Featured Image"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Image Link"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

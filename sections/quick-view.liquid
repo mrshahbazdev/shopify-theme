@@ -1,0 +1,209 @@
+{%- comment -%}
+  Bano Theme - Quick View Modal
+  Product quick view popup with essential info and add to cart
+{%- endcomment -%}
+
+<div 
+  id="QuickViewModal" 
+  class="drawer fixed inset-0 z-[1300] pointer-events-none"
+  data-quick-view-modal
+>
+  <!-- Overlay -->
+  <div 
+    class="drawer-overlay absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-quick-view-overlay
+  ></div>
+  
+  <!-- Modal Panel -->
+  <div 
+    class="drawer-panel absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl max-h-[90vh] bg-background shadow-2xl rounded-lg transform scale-95 opacity-0 transition-all duration-300 overflow-hidden"
+    data-quick-view-panel
+    data-focus-trap
+  >
+    <!-- Close Button -->
+    <button 
+      type="button"
+      class="absolute top-4 right-4 z-10 p-2 bg-background-secondary hover:bg-background rounded-full transition-colors shadow-sm"
+      data-quick-view-close
+      aria-label="Close quick view"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Content -->
+    <div data-quick-view-content class="overflow-y-auto max-h-[90vh]">
+      <!-- Loading State -->
+      <div class="p-8 flex items-center justify-center min-h-[400px]">
+        <div class="animate-spin w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('QuickViewModal');
+    if (!modal) return;
+
+    const overlay = modal.querySelector('[data-quick-view-overlay]');
+    const panel = modal.querySelector('[data-quick-view-panel]');
+    const closeBtn = modal.querySelector('[data-quick-view-close]');
+    const content = modal.querySelector('[data-quick-view-content]');
+
+    // Open modal
+    window.openQuickView = async function(productUrl) {
+      modal.classList.add('open');
+      modal.classList.remove('pointer-events-none');
+      overlay.classList.remove('opacity-0');
+      panel.classList.remove('scale-95', 'opacity-0');
+      panel.classList.add('scale-100', 'opacity-100');
+      document.body.classList.add('overflow-hidden');
+
+      content.innerHTML = '<div class="p-8 flex items-center justify-center min-h-[400px]"><div class="animate-spin w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full"></div></div>';
+
+      try {
+        const response = await fetch(productUrl + '?view=quick-view');
+        const html = await response.text();
+        content.innerHTML = html;
+        initQuickViewEvents();
+      } catch (error) {
+        content.innerHTML = '<div class="p-8 text-center"><p class="text-error">Failed to load product. Please try again.</p></div>';
+      }
+    };
+
+    // Close modal
+    function closeQuickView() {
+      modal.classList.remove('open');
+      modal.classList.add('pointer-events-none');
+      overlay.classList.add('opacity-0');
+      panel.classList.remove('scale-100', 'opacity-100');
+      panel.classList.add('scale-95', 'opacity-0');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Initialize quick view events
+    function initQuickViewEvents() {
+      const form = content.querySelector('form[action*="/cart/add"]');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = form.querySelector('[type="submit"], [data-add-to-cart]');
+        if (!submitBtn) return;
+
+        const formData = new FormData(form);
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/cart/add.js', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            submitBtn.classList.remove('loading');
+            submitBtn.classList.add('success');
+            submitBtn.textContent = themeStrings?.product?.added_to_cart || 'Added!';
+            
+            // Update cart count
+            const cartResponse = await fetch('/cart.js');
+            const cart = await cartResponse.json();
+            document.querySelectorAll('[data-cart-count]').forEach(el => {
+              el.textContent = cart.item_count;
+            });
+
+            // Open cart drawer
+            setTimeout(() => {
+              closeQuickView();
+              document.querySelector('[data-cart-toggle]')?.click();
+              submitBtn.classList.remove('success');
+              submitBtn.disabled = false;
+              submitBtn.textContent = themeStrings?.product?.add_to_cart || 'Add to Cart';
+            }, 1000);
+          }
+        } catch (error) {
+          submitBtn.classList.remove('loading');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Error';
+        }
+      });
+
+      // Variant image switching
+      const variantInputs = form.querySelectorAll('[name="id"]');
+      variantInputs.forEach(input => {
+        if (input.type === 'radio') {
+          input.addEventListener('change', () => {
+            updateQuickViewVariant(form, input.value);
+          });
+        }
+      });
+    }
+
+    // Update variant (image, price)
+    async function updateQuickViewVariant(form, variantId) {
+      try {
+        const response = await fetch(`/products/${form.dataset.productHandle}.js`);
+        const product = await response.json();
+        const variant = product.variants.find(v => v.id == variantId);
+        
+        if (!variant) return;
+
+        // Update price
+        const priceEl = form.querySelector('[data-price]');
+        if (priceEl && variant.price) {
+          priceEl.textContent = Shopify.formatMoney(variant.price, window.themeStrings?.money_format || '${{amount}}');
+        }
+
+        // Update image
+        if (variant.featured_image) {
+          const img = form.querySelector('[data-product-image]');
+          if (img) img.src = variant.featured_image;
+        }
+
+        // Update add to cart button
+        const addBtn = form.querySelector('[type="submit"], [data-add-to-cart]');
+        if (addBtn) {
+          if (variant.available) {
+            addBtn.disabled = false;
+            addBtn.textContent = themeStrings?.product?.add_to_cart || 'Add to Cart';
+          } else {
+            addBtn.disabled = true;
+            addBtn.textContent = themeStrings?.product?.sold_out || 'Sold Out';
+          }
+        }
+      } catch (error) {
+        console.error('Error updating variant:', error);
+      }
+    }
+
+    // Event listeners
+    document.querySelectorAll('[data-quick-view]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const productUrl = btn.dataset.productUrl;
+        window.openQuickView(productUrl);
+      });
+    });
+
+    closeBtn?.addEventListener('click', closeQuickView);
+    overlay?.addEventListener('click', closeQuickView);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) {
+        closeQuickView();
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Quick View",
+  "tag": "section",
+  "class": "section-quick-view",
+  "limit": 1
+}
+{% endschema %}

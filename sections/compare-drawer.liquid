@@ -1,0 +1,234 @@
+{%- comment -%}
+  Bano Theme - Compare Drawer
+  Side-by-side product comparison
+{%- endcomment -%}
+
+<div 
+  id="CompareDrawer" 
+  class="drawer fixed inset-0 z-[1300] pointer-events-none"
+  data-compare-drawer
+>
+  <!-- Overlay -->
+  <div 
+    class="drawer-overlay absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-compare-drawer-overlay
+  ></div>
+  
+  <!-- Drawer Panel -->
+  <div 
+    class="drawer-panel absolute top-0 right-0 bottom-0 w-full max-w-2xl bg-background shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+    data-compare-drawer-panel
+    data-focus-trap
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-border">
+      <h2 class="text-lg font-semibold text-text-primary flex items-center gap-2">
+        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        {{ 'compare.title' | t }}
+        <span class="text-sm font-normal text-text-muted ml-2">
+          (<span data-compare-count-display>0</span>/4)
+        </span>
+      </h2>
+      <button 
+        type="button"
+        class="p-2 hover:bg-background-secondary rounded-full transition-colors"
+        data-compare-drawer-close
+        aria-label="Close compare"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Compare Content -->
+    <div id="CompareDrawerContent" class="flex-1 overflow-y-auto">
+      <div class="compare-empty p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-text-primary mb-2">{{ 'compare.empty.title' | t }}</h3>
+        <p class="text-text-muted mb-6">{{ 'compare.empty.subtitle' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn-primary px-6 py-3">
+          Browse Products
+        </a>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="border-t border-border p-4 bg-background">
+      <p class="text-sm text-text-muted mb-4 text-center">
+        {{ 'compare.max_products' | t }}
+      </p>
+      <button 
+        type="button"
+        class="btn-outline w-full py-3"
+        data-clear-compare
+      >
+        {{ 'compare.clear' | t }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const drawer = document.getElementById('CompareDrawer');
+    if (!drawer) return;
+
+    const overlay = drawer.querySelector('[data-compare-drawer-overlay]');
+    const panel = drawer.querySelector('[data-compare-drawer-panel]');
+    const closeBtn = drawer.querySelector('[data-compare-drawer-close]');
+    const content = drawer.querySelector('#CompareDrawerContent');
+    const countDisplay = drawer.querySelector('[data-compare-count-display]');
+    const clearBtn = drawer.querySelector('[data-clear-compare]');
+
+    let compare = JSON.parse(localStorage.getItem('bano-compare') || '[]');
+
+    // Open drawer
+    function openCompareDrawer() {
+      drawer.classList.add('open');
+      drawer.classList.remove('pointer-events-none');
+      overlay.classList.remove('opacity-0');
+      panel.classList.remove('translate-x-full');
+      renderCompare();
+    }
+
+    // Close drawer
+    function closeCompareDrawer() {
+      drawer.classList.remove('open');
+      drawer.classList.add('pointer-events-none');
+      overlay.classList.add('opacity-0');
+      panel.classList.add('translate-x-full');
+    }
+
+    // Render compare table
+    async function renderCompare() {
+      countDisplay.textContent = compare.length;
+
+      if (compare.length === 0) {
+        content.innerHTML = `
+          <div class="compare-empty p-8 text-center">
+            <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+              <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-text-primary mb-2">${themeStrings?.compare?.empty?.title || 'No products to compare'}</h3>
+            <p class="text-text-muted mb-6">${themeStrings?.compare?.empty?.subtitle || 'Add products to compare them side by side.'}</p>
+            <a href="/collections/all" class="btn-primary px-6 py-3">Browse Products</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Fetch product data
+      const productIds = compare.map(c => c.id);
+      const response = await fetch(`/products.js?ids=${productIds.join(',')}`);
+      const products = await response.json();
+
+      // Build comparison table
+      const specs = {
+        'Price': products.map(p => Shopify.formatMoney(p.variants[0].price, window.themeStrings?.money_format || '${{amount}}')),
+        'Vendor': products.map(p => p.vendor),
+        'Availability': products.map(p => p.variants[0].available ? 'In Stock' : 'Out of Stock'),
+        'Description': products.map(p => p.body_html.replace(/<[^>]*>/g, '').substring(0, 100) + '...')
+      };
+
+      content.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr>
+                <th class="p-4 text-left text-sm font-medium text-text-muted bg-background-secondary w-32">Product</th>
+                ${products.map(p => `
+                  <td class="p-4 text-center min-w-[200px]">
+                    <div class="relative">
+                      <button 
+                        type="button"
+                        class="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center text-xs hover:bg-error/80"
+                        data-remove-compare="${p.id}"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </button>
+                      <a href="${p.url}">
+                        <img src="${p.featured_image}" alt="${p.title}" class="w-32 h-32 object-cover rounded-lg mx-auto mb-3">
+                        <h4 class="font-medium text-text-primary line-clamp-2">${p.title}</h4>
+                      </a>
+                    </div>
+                  </td>
+                `).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${Object.entries(specs).map(([label, values]) => `
+                <tr class="border-t border-border">
+                  <th class="p-4 text-left text-sm font-medium text-text-muted bg-background-secondary">${label}</th>
+                  ${values.map(value => `
+                    <td class="p-4 text-center text-sm text-text-primary">${value}</td>
+                  `).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="p-4">
+          <a href="${products[0]?.url}" class="btn-primary w-full py-3 text-center block">
+            View First Product
+          </a>
+        </div>
+      `;
+
+      // Add event listeners
+      content.querySelectorAll('[data-remove-compare]').forEach(btn => {
+        btn.addEventListener('click', () => removeFromCompare(btn.dataset.removeCompare));
+      });
+    }
+
+    // Remove from compare
+    function removeFromCompare(productId) {
+      compare = compare.filter(c => c.id !== productId);
+      localStorage.setItem('bano-compare', JSON.stringify(compare));
+      renderCompare();
+      document.querySelectorAll('[data-compare-count]').forEach(el => {
+        el.textContent = compare.length;
+      });
+    }
+
+    // Clear all
+    clearBtn?.addEventListener('click', () => {
+      compare = [];
+      localStorage.setItem('bano-compare', JSON.stringify(compare));
+      renderCompare();
+      document.querySelectorAll('[data-compare-count]').forEach(el => {
+        el.textContent = 0;
+      });
+    });
+
+    // Event listeners
+    document.querySelectorAll('[data-compare-toggle]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCompareDrawer();
+      });
+    });
+
+    closeBtn?.addEventListener('click', closeCompareDrawer);
+    overlay?.addEventListener('click', closeCompareDrawer);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Compare Drawer",
+  "tag": "section",
+  "class": "section-compare-drawer",
+  "limit": 1
+}
+{% endschema %}

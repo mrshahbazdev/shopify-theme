@@ -1,0 +1,185 @@
+{%- comment -%}
+  Bano Theme - Sticky Add to Cart
+  Sticky bar that appears on scroll for product pages
+{%- endcomment -%}
+
+{%- if template.name == 'product' -%}
+  <div 
+    id="StickyATC" 
+    class="sticky-atc fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-lg transform translate-y-full transition-transform duration-300 z-[1200] hidden lg:block"
+    data-sticky-atc
+  >
+    <div class="container-custom py-4">
+      <div class="flex items-center justify-between gap-6">
+        <!-- Product Info -->
+        <div class="flex items-center gap-4">
+          {%- if product.featured_image -%}
+            <img 
+              src="{{ product.featured_image | image_url: width: 80 }}"
+              alt="{{ product.title }}"
+              class="w-16 h-16 object-cover rounded-md"
+            >
+          {%- endif -%}
+          
+          <div>
+            <h3 class="font-medium text-text-primary line-clamp-1">{{ product.title }}</h3>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-lg font-semibold {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}text-sale{% else %}text-text-primary{% endif %}">
+                {{ product.selected_or_first_available_variant.price | money }}
+              </span>
+              {%- if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price -%}
+                <span class="text-sm text-text-muted line-through">
+                  {{ product.selected_or_first_available_variant.compare_at_price | money }}
+                </span>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Variant & Add to Cart -->
+        <div class="flex items-center gap-4">
+          {%- if product.has_only_default_variant == false -%}
+            <div class="relative">
+              <select 
+                id="StickyVariantSelector"
+                class="input py-2 pl-3 pr-8 min-w-[150px]"
+                data-product-form="{{ product.id }}"
+              >
+                {%- for variant in product.variants -%}
+                  <option 
+                    value="{{ variant.id }}"
+                    {% if variant == product.selected_or_first_available_variant %}selected{% endif %}
+                    {% unless variant.available %}disabled{% endunless %}
+                  >
+                    {{ variant.title | escape }}
+                    {%- unless variant.available %} - Sold out{% endunless -%}
+                  </option>
+                {%- endfor -%}
+              </select>
+              <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          {%- else -%}
+            <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+          {%- endif -%}
+          
+          <button 
+            type="button"
+            class="btn-primary px-8 py-3 font-semibold flex items-center gap-2"
+            data-sticky-atc-btn
+            {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+          >
+            {%- if product.selected_or_first_available_variant.available -%}
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              {{ 'product.add_to_cart' | t }}
+            {%- else -%}
+              {{ 'product.sold_out' | t }}
+            {%- endif -%}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const stickyATC = document.getElementById('StickyATC');
+      if (!stickyATC) return;
+
+      const mainATCBtn = document.querySelector('[data-add-to-cart]');
+      const stickyBtn = stickyATC.querySelector('[data-sticky-atc-btn]');
+      const variantSelector = stickyATC.querySelector('#StickyVariantSelector');
+
+      // Show/hide based on scroll
+      let lastScroll = 0;
+      const triggerPoint = 400;
+
+      window.addEventListener('scroll', () => {
+        const currentScroll = window.scrollY;
+        
+        if (currentScroll > triggerPoint && currentScroll > lastScroll) {
+          stickyATC.classList.remove('translate-y-full');
+        } else if (currentScroll < triggerPoint) {
+          stickyATC.classList.add('translate-y-full');
+        }
+        
+        lastScroll = currentScroll;
+      });
+
+      // Sync variant selection
+      const mainVariantSelector = document.querySelector('[data-product-form="{{ product.id }}"] [name="id"]');
+      
+      if (variantSelector && mainVariantSelector) {
+        variantSelector.addEventListener('change', (e) => {
+          // Update main form variant
+          const selectedVariant = e.target.value;
+          mainVariantSelector.value = selectedVariant;
+          mainVariantSelector.dispatchEvent(new Event('change'));
+        });
+      }
+
+      // Add to cart from sticky bar
+      stickyBtn?.addEventListener('click', async () => {
+        const form = document.querySelector('[data-product-form="{{ product.id }}"]') || document.querySelector('form[action*="/cart/add"]');
+        if (!form) return;
+
+        const formData = new FormData(form);
+        stickyBtn.disabled = true;
+        stickyBtn.classList.add('loading');
+
+        try {
+          const response = await fetch('/cart/add.js', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            stickyBtn.classList.remove('loading');
+            stickyBtn.classList.add('success');
+            stickyBtn.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Added!
+            `;
+
+            // Update cart count
+            const cartResponse = await fetch('/cart.js');
+            const cart = await cartResponse.json();
+            document.querySelectorAll('[data-cart-count]').forEach(el => {
+              el.textContent = cart.item_count;
+            });
+
+            // Open cart drawer
+            setTimeout(() => {
+              document.querySelector('[data-cart-toggle]')?.click();
+              stickyBtn.classList.remove('success');
+              stickyBtn.disabled = false;
+              stickyBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Add to Cart
+              `;
+            }, 1500);
+          }
+        } catch (error) {
+          stickyBtn.classList.remove('loading');
+          stickyBtn.disabled = false;
+        }
+      });
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sticky Add to Cart",
+  "tag": "section",
+  "class": "section-sticky-atc",
+  "limit": 1
+}
+{% endschema %}

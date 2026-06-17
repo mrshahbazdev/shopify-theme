@@ -1,0 +1,253 @@
+{%- comment -%}
+  Bano Theme - Featured Collection Section
+  Showcase a selected collection with grid or carousel layout
+{%- endcomment -%}
+
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  assign products_to_show = section.settings.products_to_show | default: 8
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign show_view_all = section.settings.show_view_all
+  assign layout = section.settings.layout
+  assign columns = section.settings.columns | default: 4
+  assign enable_carousel = section.settings.enable_carousel
+-%}
+
+<section 
+  id="FeaturedCollection-{{ section.id }}"
+  class="section featured-collection"
+  data-section-id="{{ section.id }}"
+  data-section-type="featured-collection"
+>
+  <div class="container-custom">
+    
+    <!-- Section Header -->
+    {%- if heading != blank or subheading != blank -%}
+      <div class="text-center mb-10">
+        {%- if subheading != blank -%}
+          <p class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">{{ subheading }}</p>
+        {%- endif -%}
+        
+        {%- if heading != blank -%}
+          <h2 class="text-3xl md:text-4xl font-bold text-text-primary">{{ heading }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+    
+    <!-- Products Grid/Carousel -->
+    {%- if collection != blank and collection.products.size > 0 -%}
+      <div 
+        class="featured-collection__wrapper {% if enable_carousel %}swiper-container{% endif %}"
+        data-featured-swiper
+        data-carousel-enabled="{{ enable_carousel }}"
+        data-columns="{{ columns }}"
+        data-mobile-columns="{{ section.settings.mobile_columns | default: 2 }}"
+      >
+        <div class="featured-collection__products {% if enable_carousel %}swiper-wrapper flex{% else %}grid grid-cols-2 md:grid-cols-{{ columns }} gap-4 md:gap-6{% endif %}">
+          {%- for product in collection.products limit: products_to_show -%}
+            {%- if enable_carousel -%}
+              <div class="swiper-slide {% if enable_carousel %}h-auto{% endif %}">
+            {%- endif -%}
+            
+            {%- render 'product-card', product: product -%}
+            
+            {%- if enable_carousel -%}
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+        
+        {%- if enable_carousel -%}
+          <!-- Carousel Navigation -->
+          {%- if collection.products.size > columns -%}
+            <div class="featured-collection__navigation flex justify-center gap-4 mt-8">
+              <button 
+                type="button"
+                class="featured-collection__prev w-10 h-10 border border-border rounded-full flex items-center justify-center text-text-secondary hover:border-primary-600 hover:text-primary-600 transition-colors"
+                aria-label="Previous products"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <button 
+                type="button"
+                class="featured-collection__next w-10 h-10 border border-border rounded-full flex items-center justify-center text-text-secondary hover:border-primary-600 hover:text-primary-600 transition-colors"
+                aria-label="Next products"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+          {%- endif -%}
+          
+          <!-- Carousel Dots -->
+          {%- if collection.products.size > 4 -%}
+            <div class="featured-collection__pagination flex justify-center gap-2 mt-6"></div>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      <!-- Empty State -->
+      <div class="text-center py-16 px-4">
+        <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-text-primary mb-2">No Products Found</h3>
+        <p class="text-text-muted mb-6">This collection doesn't have any products yet.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn-primary px-6 py-3 inline-flex items-center gap-2">
+          Browse All Products
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </a>
+      </div>
+    {%- endif -%}
+    
+    <!-- View All Link -->
+    {%- if show_view_all and collection != blank -%}
+      <div class="text-center mt-10">
+        <a 
+          href="{{ collection.url }}" 
+          class="btn-outline px-8 py-3 inline-flex items-center gap-2"
+        >
+          View All {{ collection.title }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.querySelector('[data-featured-swiper]');
+    if (!wrapper || typeof Swiper === 'undefined') return;
+
+    const isCarousel = wrapper.dataset.carouselEnabled === 'true';
+    if (!isCarousel) return;
+
+    const columns = parseInt(wrapper.dataset.columns) || 4;
+    const mobileColumns = parseInt(wrapper.dataset.mobileColumns) || 2;
+
+    new Swiper(wrapper, {
+      loop: true,
+      slidesPerView: mobileColumns,
+      spaceBetween: 16,
+      navigation: {
+        nextEl: '.featured-collection__next',
+        prevEl: '.featured-collection__prev',
+      },
+      pagination: {
+        el: '.featured-collection__pagination',
+        clickable: true,
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: Math.min(mobileColumns + 1, 3),
+          spaceBetween: 20,
+        },
+        768: {
+          slidesPerView: Math.min(columns - 1, 4),
+          spaceBetween: 24,
+        },
+        1024: {
+          slidesPerView: columns,
+          spaceBetween: 24,
+        }
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Featured Collection",
+  "tag": "section",
+  "class": "section-featured-collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Featured Collection",
+      "label": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 8,
+      "label": "Products to Show"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4,
+      "label": "Columns (Desktop)"
+    },
+    {
+      "type": "range",
+      "id": "mobile_columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2,
+      "label": "Columns (Mobile)"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "default": "grid",
+      "label": "Layout",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "carousel", "label": "Carousel" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_carousel",
+      "default": false,
+      "label": "Enable Carousel Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Show View All Button"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Collection",
+      "settings": {
+        "heading": "Featured Collection",
+        "products_to_show": 8,
+        "columns": 4,
+        "show_view_all": true
+      }
+    }
+  ]
+}
+{% endschema %}

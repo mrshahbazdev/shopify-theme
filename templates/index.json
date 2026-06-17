@@ -1,0 +1,89 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "heading": "Welcome to Our Store",
+            "description": "Discover amazing products with the best quality and prices. Shop now and enjoy exclusive deals!",
+            "button_text": "Shop Now",
+            "button_url": "/collections/all",
+            "content_alignment": "center"
+          }
+        }
+      ],
+      "block_order": ["slide"]
+    },
+    "logo_carousel": {
+      "type": "logo-carousel",
+      "settings": {
+        "heading": "Trusted by Leading Brands"
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "Featured Products",
+        "subheading": "Our Best Sellers",
+        "products_to_show": 8,
+        "columns": 4,
+        "show_view_all": true
+      }
+    },
+    "rich_text": {
+      "type": "rich-text",
+      "settings": {
+        "heading": "Why Shop With Us?",
+        "subheading": "Premium Quality Guaranteed",
+        "text": "<p>We're committed to delivering exceptional products with outstanding customer service. Every order is carefully packaged and shipped with love.</p>",
+        "text_alignment": "center"
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "settings": {
+        "heading": "What Our Customers Say",
+        "autoplay": true
+      }
+    },
+    "featured_collection_2": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "New Arrivals",
+        "subheading": "Fresh Styles",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": true
+      }
+    },
+    "countdown_timer": {
+      "type": "countdown-timer",
+      "settings": {
+        "heading": "Limited Time Offer",
+        "subheading": "Get up to 50% off on selected items",
+        "end_date": "2025-12-31"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {
+        "heading": "Frequently Asked Questions"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter"
+    }
+  },
+  "order": [
+    "hero",
+    "logo_carousel",
+    "featured_collection",
+    "rich_text",
+    "testimonials",
+    "featured_collection_2",
+    "countdown_timer",
+    "faq"
+  ]
+}

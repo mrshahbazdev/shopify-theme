@@ -1,0 +1,159 @@
+{%- comment -%}
+  Bano Theme - Related Products Section
+  Carousel of related products for product page
+{%- endcomment -%}
+
+{%- if section.settings.products_list == blank -%}
+  {%- assign related_products = [] -%}
+  
+  {%- for product in collections[section.settings.collection].products limit: section.settings.products_to_show -%}
+    {%- unless product.id == current_product.id -%}
+      {%- assign related_products = related_products | concat: product -%}
+    {%- endunless -%}
+  {%- endfor -%}
+{%- else -%}
+  {%- assign related_products = section.settings.products_list -%}
+{%- endif -%}
+
+{%- if related_products.size > 0 -%}
+  <section 
+    id="RelatedProducts-{{ section.id }}"
+    class="section related-products py-16 bg-background-secondary"
+    data-section-id="{{ section.id }}"
+    data-section-type="related-products"
+  >
+    <div class="container-custom">
+      
+      <!-- Section Header -->
+      <div class="flex items-center justify-between mb-10">
+        <div>
+          {%- if section.settings.subheading != blank -%}
+            <p class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-1">
+              {{ section.settings.subheading }}
+            </p>
+          {%- endif -%}
+          
+          <h2 class="text-2xl md:text-3xl font-bold text-text-primary">
+            {{ section.settings.heading | default: 'You May Also Like' }}
+          </h2>
+        </div>
+        
+        {%- if related_products.size > 4 -%}
+          <div class="hidden md:flex items-center gap-2">
+            <button 
+              type="button"
+              class="related-prev w-10 h-10 border border-border rounded-full flex items-center justify-center text-text-secondary hover:border-primary-600 hover:text-primary-600 transition-colors"
+              aria-label="Previous products"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <button 
+              type="button"
+              class="related-next w-10 h-10 border border-border rounded-full flex items-center justify-center text-text-secondary hover:border-primary-600 hover:text-primary-600 transition-colors"
+              aria-label="Next products"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+      
+      <!-- Products Carousel -->
+      <div 
+        class="related-swiper swiper-container"
+        data-related-swiper
+      >
+        <div class="swiper-wrapper">
+          {%- for product in related_products limit: section.settings.products_to_show -%}
+            <div class="swiper-slide h-auto">
+              {%- render 'product-card', product: product -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const swiperEl = document.querySelector('[data-related-swiper]');
+      if (!swiperEl || typeof Swiper === 'undefined') return;
+
+      const swiper = new Swiper(swiperEl, {
+        loop: false,
+        slidesPerView: 2,
+        spaceBetween: 16,
+        navigation: {
+          nextEl: '.related-next',
+          prevEl: '.related-prev',
+        },
+        breakpoints: {
+          480: {
+            slidesPerView: 2,
+          },
+          640: {
+            slidesPerView: 3,
+          },
+          1024: {
+            slidesPerView: 4,
+          }
+        }
+      });
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Related Products",
+  "tag": "section",
+  "class": "section-related-products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "You May Also Like",
+      "label": "Heading"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Products from this collection will be shown"
+    },
+    {
+      "type": "product_list",
+      "id": "products_list",
+      "label": "Products",
+      "info": "Select specific products to show"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4,
+      "label": "Products to Show"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Related Products",
+      "settings": {
+        "heading": "You May Also Like",
+        "products_to_show": 4
+      }
+    }
+  ]
+}
+{% endschema %}

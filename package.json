@@ -1,0 +1,32 @@
+{
+  "name": "bano-theme",
+  "version": "1.0.0",
+  "description": "Bano - Premium Advanced Shopify Theme with ultra-fast performance and best-in-class UX/UI design",
+  "main": "index.js",
+  "scripts": {
+    "dev": "shopify theme dev",
+    "dev:tailwind": "npx tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/styles.css --watch",
+    "build:tailwind": "npx tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/styles.css --minify",
+    "build": "npm run build:tailwind",
+    "watch": "concurrently \"npm run dev\" \"npm run dev:tailwind\""
+  },
+  "keywords": [
+    "shopify",
+    "theme",
+    "ecommerce",
+    "liquid",
+    "tailwindcss"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0"
+  },
+  "dependencies": {
+    "@shopify/cli": "^3.50.0",
+    "@shopify/theme": "^3.50.0"
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "general": {
+    "accessibility": {
+      "close": "बंद करें",
+      "menu": "मेन्यू",
+      "toggle_menu": "मेन्यू टॉगल करें",
+      "search": "खोजें",
+      "cart": "कार्ट",
+      "account": "खाता",
+      "skip_to_content": "सामग्री पर जाएं",
+      "loading": "लोड हो रहा है...",
+      "previous": "पिछला",
+      "next": "अगला"
+    },
+    "meta": {
+      "page": "पृष्ठ",
+      "products": "उत्पाद",
+      "collections": "संग्रह",
+      "blogs": "ब्लॉग",
+      "pages": "पृष्ठ"
+    },
+    "404": {
+      "title": "पृष्ठ नहीं मिला",
+      "subtitle": "आप जो पृष्ठ खोज रहे हैं वह मौजूद नहीं है या स्थानांतरित कर दिया गया है।",
+      "search_label": "हमारी दुकान खोजें",
+      "search_placeholder": "आप क्या खोज रहे हैं?",
+      "button": "होम पर वापस जाएं"
+    }
+  },
+  "header": {
+    "search": {
+      "placeholder": "उत्पाद, संग्रह खोजें...",
+      "submit": "खोजें",
+      "no_results": "कोई परिणाम नहीं मिला",
+      "popular_searches": "लोकप्रिय खोजें"
+    },
+    "account": {
+      "login": "साइन इन करें",
+      "register": "रजिस्टर करें",
+      "logout": "लॉग आउट",
+      "my_account": "मेरा खाता",
+      "orders": "ऑर्डर",
+      "addresses": "पते",
+      "wishlist": "विशलिस्ट"
+    },
+    "cart": {
+      "items_count": "{{ count }} आइटम",
+      "items_count_plural": "{{ count }} आइटम",
+      "view_cart": "कार्ट देखें",
+      "checkout": "चेकआउट",
+      "empty": "आपका कार्ट खाली है",
+      "subtotal": "उप-कुल",
+      "shipping_note": "चेकआउट पर शिपिंग गणना की जाएगी"
+    }
+  },
+  "footer": {
+    "newsletter": {
+      "title": "हमारे न्यूज़लेटर से जुड़ें",
+      "subtitle": "विशेष ऑफर, मुफ्त उपहार और विशेष सौदे पाने के लिए सदस्यता लें।",
+      "placeholder": "अपना ईमेल दर्ज करें",
+      "button": "सदस्यता लें",
+      "success": "सदस्यता के लिए धन्यवाद!",
+      "error": "कृपया एक मान्य ईमेल दर्ज करें"
+    },
+    "social": {
+      "follow_us": "हमें फॉलो करें"
+    },
+    "copyright": "© {{ year }} {{ shop_name }}. सर्वाधिकार सुरक्षित।"
+  },
+  "product": {
+    "add_to_cart": "कार्ट में जोड़ें",
+    "added_to_cart": "कार्ट में जोड़ा गया",
+    "buy_now": "अभी खरीदें",
+    "unavailable": "उपलब्ध नहीं",
+    "sold_out": "बिक गया",
+    "sale": "सेल",
+    "new": "नया",
+    "in_stock": "स्टॉक में",
+    "low_stock": "कम स्टॉक",
+    "out_of_stock": "स्टॉक में नहीं",
+    "only_left": "केवल {{ count }} बचे!",
+    "from": "से",
+    "compare_at": "तुलना मूल्य",
+    "save": "{{ amount }} बचाएं",
+    "save_percent": "{{ percent }}% बचाएं",
+    "tax_included": "कर शामिल है।",
+    "quantity": "मात्रा",
+    "size_guide": "साइज गाइड",
+    "shipping": "शिपिंग",
+    "shipping_info": "चेकआउट पर शिपिंग गणना की जाएगी।",
+    "free_shipping": "{{ amount }} से अधिक ऑर्डर पर मुफ्त शिपिंग",
+    "returns": "रिटर्न",
+    "returns_info": "30 दिन की रिटर्न नीति",
+    "sku": "SKU",
+    "barcode": "बारकोड",
+    "vendor": "विक्रेता",
+    "type": "प्रकार",
+    "tags": "टैग",
+    "share": "शेयर करें",
+    "wishlist": "विशलिस्ट में जोड़ें",
+    "compare": "तुलना में जोड़ें",
+    "quick_view": "त्वरित देखें",
+    "view_details": "विवरण देखें",
+    "description": "विवरण",
+    "specifications": "विनिर्देश",
+    "reviews": "समीक्षाएं",
+    "related_products": "आपको यह भी पसंद आ सकता है",
+    "recently_viewed": "हाल ही में देखा गया"
+  },
+  "collection": {
+    "filter": {
+      "title": "फ़िल्टर",
+      "all": "सभी",
+      "clear_all": "सभी साफ़ करें",
+      "apply": "लागू करें",
+      "close": "फ़िल्टर बंद करें",
+      "active_filters": "सक्रिय फ़िल्टर",
+      "no_filters": "कोई फ़िल्टर लागू नहीं"
+    },
+    "sort": {
+      "title": "इसके अनुसार क्रमबद्ध करें",
+      "featured": "विशेष",
+      "price_asc": "मूल्य: कम से अधिक",
+      "price_desc": "मूल्य: अधिक से कम",
+      "title_asc": "वर्णानुक्रम: A-Z",
+      "title_desc": "वर्णानुक्रम: Z-A",
+      "created_desc": "नवीनतम पहले",
+      "created_asc": "पुराना पहले",
+      "best_selling": "सबसे ज्यादा बिकने वाला"
+    },
+    "view": {
+      "grid": "ग्रिड दृश्य",
+      "list": "सूची दृश्य"
+    },
+    "empty": {
+      "title": "कोई उत्पाद नहीं मिला",
+      "subtitle": "अपनी खोज या फ़िल्टर समायोजित करने का प्रयास करें।",
+      "clear_filters": "फ़िल्टर साफ़ करें"
+    },
+    "products_count": "{{ count }} उत्पाद"
+  },
+  "search": {
+    "title": "खोज",
+    "results_for": "\"{{ query }}\" के परिणाम",
+    "no_results": {
+      "title": "कोई परिणाम नहीं मिला",
+      "subtitle": "हमें आपकी खोज से मेल खाते कोई परिणाम नहीं मिला।",
+      "suggestions": "खोज सुझाव",
+      "try_different": "विभिन्न कीवर्ड का प्रयास करें",
+      "check_spelling": "वर्तनी जांचें",
+      "use_generic": "अधिक सामान्य शब्दों का उपयोग करें"
+    },
+    "products": "उत्पाद",
+    "collections": "संग्रह",
+    "pages": "पृष्ठ",
+    "articles": "लेख",
+    "popular": "लोकप्रिय खोजें",
+    "recent": "हाल की खोजें",
+    "clear_recent": "हाल मिटाएं"
+  },
+  "wishlist": {
+    "title": "मेरी विशलिस्ट",
+    "empty": {
+      "title": "आपकी विशलिस्ट खाली है",
+      "subtitle": "बाद के लिए आइटम सहेजने के लिए अपनी विशलिस्ट में आइटम जोड़ें।",
+      "continue_shopping": "खरीदारी जारी रखें"
+    },
+    "add": "विशलिस्ट में जोड़ें",
+    "remove": "विशलिस्ट से हटाएं",
+    "move_to_cart": "कार्ट में ले जाएं",
+    "share": "विशलिस्ट शेयर करें"
+  },
+  "compare": {
+    "title": "उत्पादों की तुलना करें",
+    "max_products": "आप 4 उत्पादों तक की तुलना कर सकते हैं",
+    "empty": {
+      "title": "तुलना के लिए कोई उत्पाद नहीं",
+      "subtitle": "साथ-साथ तुलना करने के लिए उत्पाद जोड़ें।"
+    },
+    "add": "तुलना में जोड़ें",
+    "remove": "हटाएं",
+    "clear": "सभी साफ़ करें"
+  },
+  "cart": {
+    "title": "आपका कार्ट",
+    "empty": {
+      "title": "आपका कार्ट खाली है",
+      "subtitle": "ऐसा लगता है कि आपने अभी तक अपने कार्ट में कोई आइटम नहीं जोड़ा है।",
+      "continue_shopping": "खरीदारी जारी रखें"
+    },
+    "update": "अपडेट करें",
+    "remove": "हटाएं",
+    "subtotal": "उप-कुल",
+    "total": "कुल",
+    "shipping": "शिपिंग",
+    "shipping_at_checkout": "चेकआउट पर शिपिंग गणना की जाएगी",
+    "taxes_and_shipping_at_checkout": "चेकआउट पर कर और शिपिंग गणना की जाएगी",
+    "checkout": "चेकआउट",
+    "continue_shopping": "खरीदारी जारी रखें",
+    "quantity": "मात्रा",
+    "note": "विक्रेता के लिए विशेष निर्देश",
+    "note_placeholder": "अपने ऑर्डर के लिए एक नोट जोड़ें..."
+  },
+  "announcement": {
+    "close": "घोषणा बंद करें"
+  },
+  "testimonials": {
+    "verified": "सत्यापित खरीदार",
+    "read_more": "और पढ़ें"
+  },
+  "newsletter": {
+    "success": "सदस्यता के लिए धन्यवाद!",
+    "error": "कृपया एक मान्य ईमेल पता दर्ज करें"
+  },
+  "time": {
+    "days": "दिन",
+    "hours": "घंटे",
+    "minutes": "मिनट",
+    "seconds": "सेकंड"
+  }
+}

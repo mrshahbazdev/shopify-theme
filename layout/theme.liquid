@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}" dir="{% if settings.rtl_enabled %}rtl{% else %}ltr{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="{{ settings.color_primary }}">
+  
+  <!-- Preconnect for Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.shopify.com">
+  
+  <!-- Favicon -->
+  {%- if settings.favicon -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32 }}">
+  {%- endif -%}
+  
+  <!-- Title -->
+  <title>
+    {{ page_title }}{% if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif %}{% if current_page != 1 %} &ndash; Page {{ current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}
+  </title>
+  
+  <!-- Meta Description -->
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+  
+  <!-- Canonical -->
+  <link rel="canonical" href="{{ canonical_url }}">
+  
+  <!-- Fonts -->
+  {%- liquid
+    assign font_heading = settings.font_family_heading
+    assign font_body = settings.font_family_body
+    assign fonts = font_heading | append: '|' | append: font_body
+    assign fonts_array = fonts | split: '|'
+    assign fonts_url = fonts_array | join: '&family='
+  -%}
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family={{ fonts_url }}:wght@300;400;500;600;700&display=swap" as="style">
+  <link href="https://fonts.googleapis.com/css2?family={{ fonts_url }}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  {{ 'styles.css' | asset_url | stylesheet_tag }}
+  
+  <!-- Critical CSS (Inline) -->
+  <style>
+    :root {
+      --color-primary: {{ settings.color_primary }};
+      --color-secondary: {{ settings.color_secondary }};
+      --color-accent: {{ settings.color_accent }};
+      --color-sale: {{ settings.color_sale }};
+      --color-success: {{ settings.color_success }};
+      --color-warning: {{ settings.color_warning }};
+      --color-error: {{ settings.color_error }};
+      --color-background: {{ settings.color_background }};
+      --color-background-secondary: {{ settings.color_background_secondary }};
+      --color-text-primary: {{ settings.color_text_primary }};
+      --color-text-secondary: {{ settings.color_text_secondary }};
+      --color-text-muted: {{ settings.color_text_muted }};
+      --color-border: {{ settings.color_border }};
+      --container-width: {{ settings.container_width }}px;
+      --font-family-heading: {{ font_heading | default: 'Inter' }}, system-ui, sans-serif;
+      --font-family-body: {{ font_body | default: 'Inter' }}, system-ui, sans-serif;
+      --font-size-base: {{ settings.font_size_base | default: 16 }}px;
+      --header-height: 72px;
+    }
+    
+    /* Critical above-the-fold styles */
+    body {
+      font-family: var(--font-family-body);
+      color: var(--color-text-primary);
+      background-color: var(--color-background);
+    }
+    
+    .header {
+      height: var(--header-height);
+    }
+    
+    /* Skip Link */
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-primary);
+      color: white;
+      padding: 1rem 2rem;
+      z-index: 9999;
+      border-radius: 0 0 0.5rem 0.5rem;
+      transition: top 0.3s;
+    }
+    
+    .skip-link:focus {
+      top: 0;
+    }
+  </style>
+  
+  <!-- Theme Settings as CSS Variables -->
+  <script>
+    // Dark mode initialization (prevents flash)
+    (function() {
+      const storedTheme = localStorage.getItem('bano-theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const defaultDark = '{{ settings.dark_mode_default }}';
+      
+      let isDark = false;
+      if (storedTheme === 'dark' || (!storedTheme && defaultDark === 'dark') || (!storedTheme && defaultDark === 'system' && systemDark)) {
+        isDark = true;
+      }
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+  
+  <!-- Shopify Header Hook -->
+  {{ content_for_header }}
+</head>
+
+<body class="min-h-screen bg-background text-text-primary antialiased">
+  <!-- Skip Link for Accessibility -->
+  <a href="#MainContent" class="skip-link">
+    {{ 'general.accessibility.skip_to_content' | t }}
+  </a>
+  
+  <!-- Announcement Bar -->
+  {%- section 'announcement-bar' -%}
+  
+  <!-- Header -->
+  {%- section 'header' -%}
+  
+  <!-- Main Content -->
+  <main id="MainContent" role="main">
+    {{ content_for_layout }}
+  </main>
+  
+  <!-- Cart Drawer -->
+  {%- section 'cart-drawer' -%}
+  
+  <!-- Search Drawer -->
+  {%- section 'search-drawer' -%}
+  
+  <!-- Wishlist Drawer -->
+  {%- section 'wishlist-drawer' -%}
+  
+  <!-- Compare Drawer -->
+  {%- section 'compare-drawer' -%}
+  
+  <!-- Quick View Modal -->
+  {%- section 'quick-view' -%}
+  
+  <!-- Footer -->
+  {%- section 'footer' -%}
+  
+  <!-- Sticky Add to Cart -->
+  {%- section 'sticky-atc' -%}
+  
+  <!-- Back to Top Button -->
+  <button id="back-to-top" class="fixed bottom-6 right-6 z-50 p-3 bg-primary-600 text-white rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" aria-label="Back to top">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+  </button>
+  
+  <!-- JavaScript -->
+  {{ 'vendor.min.js' | asset_url | script_tag }}
+  {{ 'theme.js' | asset_url | script_tag }}
+  
+  <!-- Additional Scripts -->
+  {%- if template.name == 'product' -%}
+    {{ 'product.js' | asset_url | script_tag }}
+  {%- endif -%}
+  
+  {%- if template.name == 'collection' -%}
+    {{ 'collection.js' | asset_url | script_tag }}
+  {%- endif -%}
+  
+  <!-- Shopify Theme Editor -->
+  {%- if request.design_mode -%}
+    <script>
+      document.addEventListener('shopify:section:load', function(event) {
+        // Reinitialize section scripts when edited in theme editor
+        window.BanoTheme?.initSection(event.detail.sectionId);
+      });
+    </script>
+  {%- endif -%}
+  
+  <!-- Structured Data (JSON-LD) -->
+  {%- if template.name == 'product' -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "{{ product.title | escape }}",
+        "description": "{{ product.description | strip_html | escape }}",
+        "image": "{{ product.featured_image | image_url: width: 800 }}",
+        "url": "{{ shop.url }}{{ product.url }}",
+        "brand": {
+          "@type": "Brand",
+          "name": "{{ product.vendor | escape }}"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "{{ product.price | money_without_currency }}",
+          "priceCurrency": "{{ cart.currency.iso_code }}",
+          "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+          "seller": {
+            "@type": "Organization",
+            "name": "{{ shop.name | escape }}"
+          }
+        }
+      }
+    </script>
+  {%- endif -%}
+  
+  {%- if template.name == 'collection' -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "{{ collection.title | escape }}",
+        "description": "{{ collection.description | strip_html | escape }}",
+        "url": "{{ shop.url }}{{ collection.url }}"
+      }
+    </script>
+  {%- endif -%}
+</body>
+</html>

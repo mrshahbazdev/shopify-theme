@@ -1,0 +1,85 @@
+{%- comment -%}
+  Bano Theme - Collection Header Section
+  Banner and description for collection pages
+{%- endcomment -%}
+
+<section 
+  id="CollectionHeader-{{ section.id }}"
+  class="collection-header"
+  data-section-id="{{ section.id }}"
+  data-section-type="collection-header"
+>
+  {%- if collection.image != blank and section.settings.show_banner -%}
+    <div class="relative h-64 md:h-80 lg:h-96 bg-cover bg-center">
+      <img 
+        src="{{ collection.image | image_url: width: 1920 }}"
+        alt="{{ collection.title }}"
+        class="w-full h-full object-cover"
+      >
+      {%- if section.settings.overlay_opacity > 0 -%}
+        <div 
+          class="absolute inset-0 bg-black"
+          style="opacity: {{ section.settings.overlay_opacity | divided_by: 100 }}"
+        ></div>
+      {%- endif -%}
+      
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="text-center text-white px-4">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            {{ collection.title }}
+          </h1>
+          {%- if section.settings.show_description and collection.description != blank -%}
+            <p class="text-lg text-white/80 max-w-2xl mx-auto hidden md:block">
+              {{ collection.description | strip_html | truncatewords: 30 }}
+            </p>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- else -%}
+    <div class="bg-background-secondary py-12 md:py-16">
+      <div class="container-custom text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+          {{ collection.title }}
+        </h1>
+        {%- if section.settings.show_description and collection.description != blank -%}
+          <p class="text-lg text-text-secondary max-w-2xl mx-auto">
+            {{ collection.description | strip_html | truncatewords: 30 }}
+          </p>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Collection Header",
+  "tag": "section",
+  "class": "section-collection-header",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_banner",
+      "default": true,
+      "label": "Show Banner Image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "default": true,
+      "label": "Show Description"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 40,
+      "unit": "%",
+      "label": "Banner Overlay Opacity"
+    }
+  ]
+}
+{% endschema %}

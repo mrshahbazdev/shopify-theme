@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "collection_header": {
+      "type": "collection-header",
+      "settings": {
+        "show_description": true
+      }
+    },
+    "main": {
+      "type": "main-collection",
+      "settings": {
+        "layout": "grid",
+        "columns": 4,
+        "show_filters": true,
+        "show_sort": true
+      }
+    }
+  },
+  "order": ["collection_header", "main"]
+}

@@ -1,0 +1,149 @@
+{%- comment -%}
+  Bano Theme - Announcement Bar Section
+  Scrolling text with multiple messages and close button
+{%- endcomment -%}
+
+{%- if settings.announcement_bar_enabled and section.blocks.size > 0 -%}
+  <div 
+    class="announcement-bar relative overflow-hidden"
+    data-section-id="{{ section.id }}"
+    data-section-type="announcement-bar"
+    {{ block.shopify_attributes }}
+  >
+    <div class="announcement-bar__content flex items-center justify-center py-2 px-4 text-center text-sm font-medium"
+      style="background-color: {{ settings.announcement_bar_color }}; color: {{ settings.announcement_text_color }};"
+    >
+      {%- if section.blocks.size > 1 -%}
+        <!-- Multiple Messages - Scrolling -->
+        <div class="announcement-bar__marquee-wrapper overflow-hidden flex-1">
+          <div class="announcement-bar__marquee flex animate-marquee whitespace-nowrap">
+            {%- for block in section.blocks -%}
+              <span class="announcement-bar__message mx-8">
+                {%- if block.settings.link != blank -%}
+                  <a href="{{ block.settings.link }}" class="hover:underline">
+                    {{ block.settings.text }}
+                  </a>
+                {%- else -%}
+                  {{ block.settings.text }}
+                {%- endif -%}
+              </span>
+            {%- endfor -%}
+            {%- for block in section.blocks -%}
+              <span class="announcement-bar__message mx-8">
+                {%- if block.settings.link != blank -%}
+                  <a href="{{ block.settings.link }}" class="hover:underline">
+                    {{ block.settings.text }}
+                  </a>
+                {%- else -%}
+                  {{ block.settings.text }}
+                {%- endif -%}
+              </span>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- else -%}
+        <!-- Single Message -->
+        {%- for block in section.blocks -%}
+          <span class="announcement-bar__message">
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="hover:underline">
+                {{ block.settings.text }}
+              </a>
+            {%- else -%}
+              {{ block.settings.text }}
+            {%- endif -%}
+          </span>
+        {%- endfor -%}
+      {%- endif -%}
+      
+      <!-- Close Button -->
+      <button 
+        type="button"
+        class="announcement-bar__close absolute right-4 p-1 hover:opacity-80 transition-opacity"
+        style="color: {{ settings.announcement_text_color }};"
+        data-close
+        aria-label="{{ 'announcement.close' | t }}"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+  .announcement-bar {
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  
+  .announcement-bar.hidden {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+  
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "tag": "section",
+  "class": "section-announcement-bar",
+  "limit": 1,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Announcement bar settings can be configured in Theme Settings > Header section."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Free shipping on orders over $50! Use code: FREE50",
+          "label": "Text"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement Bar",
+      "blocks": [
+        {
+          "type": "message",
+          "settings": {
+            "text": "Free shipping on orders over $50! Use code: FREE50"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

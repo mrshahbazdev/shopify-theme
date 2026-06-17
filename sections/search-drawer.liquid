@@ -1,0 +1,260 @@
+{%- comment -%}
+  Bano Theme - Search Drawer
+  Slide-out search panel with instant search results
+{%- endcomment -%}
+
+<div 
+  id="SearchDrawer" 
+  class="drawer fixed inset-0 z-[1300] pointer-events-none"
+  data-search-drawer
+>
+  <!-- Overlay -->
+  <div 
+    class="drawer-overlay absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-search-drawer-overlay
+  ></div>
+  
+  <!-- Drawer Panel -->
+  <div 
+    class="drawer-panel absolute top-0 right-0 bottom-0 w-full max-w-lg bg-background shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+    data-search-drawer-panel
+    data-focus-trap
+  >
+    <!-- Header -->
+    <div class="flex items-center gap-4 p-4 border-b border-border">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input 
+          type="search"
+          id="SearchInput"
+          class="w-full pl-10 pr-4 py-3 bg-background-secondary border-0 rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
+          placeholder="{{ 'header.search.placeholder' | t }}"
+          autocomplete="off"
+        >
+      </div>
+      <button 
+        type="button"
+        class="p-2 hover:bg-background-secondary rounded-full transition-colors"
+        data-search-drawer-close
+        aria-label="Close search"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Search Results -->
+    <div id="SearchResults" class="flex-1 overflow-y-auto">
+      <div class="p-8 text-center">
+        <p class="text-text-muted">{{ 'header.search.placeholder' | t }}</p>
+      </div>
+    </div>
+    
+    <!-- Popular Searches -->
+    <div class="border-t border-border p-4">
+      <h3 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+        {{ 'search.popular' | t }}
+      </h3>
+      <div class="flex flex-wrap gap-2">
+        <a href="/collections/new" class="px-3 py-1.5 bg-background-secondary rounded-full text-sm text-text-secondary hover:bg-primary-50 hover:text-primary-600 transition-colors">
+          New Arrivals
+        </a>
+        <a href="/collections/best-sellers" class="px-3 py-1.5 bg-background-secondary rounded-full text-sm text-text-secondary hover:bg-primary-50 hover:text-primary-600 transition-colors">
+          Best Sellers
+        </a>
+        <a href="/collections/sale" class="px-3 py-1.5 bg-background-secondary rounded-full text-sm text-text-secondary hover:bg-primary-50 hover:text-primary-600 transition-colors">
+          Sale
+        </a>
+        <a href="/collections/all" class="px-3 py-1.5 bg-background-secondary rounded-full text-sm text-text-secondary hover:bg-primary-50 hover:text-primary-600 transition-colors">
+          All Products
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Search Drawer functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const drawer = document.getElementById('SearchDrawer');
+    if (!drawer) return;
+
+    const input = drawer.querySelector('#SearchInput');
+    const results = drawer.querySelector('#SearchResults');
+    const overlay = drawer.querySelector('[data-search-drawer-overlay]');
+    const panel = drawer.querySelector('[data-search-drawer-panel]');
+    const closeBtn = drawer.querySelector('[data-search-drawer-close]');
+
+    // Open drawer
+    function openSearchDrawer() {
+      drawer.classList.add('open');
+      drawer.classList.remove('pointer-events-none');
+      overlay.classList.remove('opacity-0');
+      panel.classList.remove('translate-x-full');
+      setTimeout(() => input?.focus(), 300);
+    }
+
+    // Close drawer
+    function closeSearchDrawer() {
+      drawer.classList.remove('open');
+      drawer.classList.add('pointer-events-none');
+      overlay.classList.add('opacity-0');
+      panel.classList.add('translate-x-full');
+      if (input) input.value = '';
+      clearResults();
+    }
+
+    // Clear results
+    function clearResults() {
+      if (results) {
+        results.innerHTML = `
+          <div class="p-8 text-center">
+            <p class="text-text-muted">${document.querySelector('[data-search-placeholder]')?.textContent || 'Start typing to search...'}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Perform search
+    let searchTimeout;
+    async function performSearch(query) {
+      if (query.length < 2) {
+        clearResults();
+        return;
+      }
+
+      results.innerHTML = '<div class="p-8 flex items-center justify-center"><div class="animate-spin w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full"></div></div>';
+
+      try {
+        const response = await fetch(`/search/suggest.json?q=${encodeURIComponent(query)}&resources[type]=product,collection,page,article&resources[limit]=6`);
+        const data = await response.json();
+        
+        renderResults(data);
+      } catch (error) {
+        console.error('Search error:', error);
+        results.innerHTML = '<p class="p-8 text-center text-error">An error occurred. Please try again.</p>';
+      }
+    }
+
+    // Render results
+    function renderResults(data) {
+      const { products, collections, pages, articles } = data.resources;
+      const hasResults = (products?.length || collections?.length || pages?.length || articles?.length);
+
+      if (!hasResults) {
+        results.innerHTML = `
+          <div class="p-8 text-center">
+            <p class="text-lg font-medium text-text-primary mb-2">${themeStrings?.search?.no_results?.title || 'No results found'}</p>
+            <p class="text-text-muted">${themeStrings?.search?.no_results?.subtitle || 'Try different keywords'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+
+      // Products
+      if (products?.length) {
+        html += `
+          <div class="px-4 py-3">
+            <h3 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Products</h3>
+            <div class="space-y-3">
+              ${products.map(p => `
+                <a href="${p.url}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-background-secondary transition-colors">
+                  <img src="${p.image}" alt="${p.title}" class="w-14 h-14 object-cover rounded">
+                  <div class="flex-1 min-w-0">
+                    <p class="font-medium text-text-primary line-clamp-1">${p.title}</p>
+                    <p class="text-sm text-primary-600">${Shopify.formatMoney(p.price, window.themeStrings?.money_format || '${{amount}}')}</p>
+                  </div>
+                  <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Other results
+      const others = [
+        ...(collections || []).map(c => ({ type: 'Collection', title: c.title, url: c.url, icon: 'collection' })),
+        ...(pages || []).map(p => ({ type: 'Page', title: p.title, url: p.url, icon: 'page' })),
+        ...(articles || []).map(a => ({ type: 'Article', title: a.title, url: a.url, icon: 'article' }))
+      ];
+
+      if (others.length) {
+        html += `
+          <div class="px-4 py-3 border-t border-border">
+            <h3 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Other Results</h3>
+            <div class="space-y-1">
+              ${others.map(o => `
+                <a href="${o.url}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-background-secondary transition-colors text-sm">
+                  <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${o.icon === 'collection' 
+                      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>'
+                      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>'}
+                  </svg>
+                  <span class="text-text-primary">${o.title}</span>
+                  <span class="text-text-muted">${o.type}</span>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // View all results link
+      html += `
+        <div class="p-4 border-t border-border">
+          <a href="/search?q=${encodeURIComponent(input.value)}" class="flex items-center justify-center gap-2 text-primary-600 font-medium hover:underline">
+            View all results
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </a>
+        </div>
+      `;
+
+      results.innerHTML = html;
+    }
+
+    // Event listeners
+    document.querySelectorAll('[data-search-toggle]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSearchDrawer();
+      });
+    });
+
+    closeBtn?.addEventListener('click', closeSearchDrawer);
+    overlay?.addEventListener('click', closeSearchDrawer);
+
+    // Search input
+    input?.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      searchTimeout = setTimeout(() => performSearch(query), 300);
+    });
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearchDrawer();
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Search Drawer",
+  "tag": "section",
+  "class": "section-search-drawer",
+  "limit": 1
+}
+{% endschema %}

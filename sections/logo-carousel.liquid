@@ -1,0 +1,157 @@
+{%- comment -%}
+  Bano Theme - Logo Carousel Section
+  Brand logos in a scrolling carousel
+{%- endcomment -%}
+
+<section 
+  id="LogoCarousel-{{ section.id }}"
+  class="section logo-carousel py-12 bg-background-secondary"
+  data-section-id="{{ section.id }}"
+  data-section-type="logo-carousel"
+>
+  <div class="container-custom">
+    
+    {%- if section.settings.heading != blank -%}
+      <h3 class="text-center text-sm font-medium text-text-muted uppercase tracking-wider mb-8">
+        {{ section.settings.heading }}
+      </h3>
+    {%- endif -%}
+    
+    <div 
+      class="logo-carousel-swiper swiper-container"
+      data-logo-swiper
+      data-autoplay="{{ section.settings.autoplay }}"
+      data-loop="{{ section.settings.loop }}"
+    >
+      <div class="swiper-wrapper items-center">
+        {%- for block in section.blocks -%}
+          {%- when 'logo' -%}
+            <div class="swiper-slide flex items-center justify-center px-8">
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" target="_blank" rel="noopener" class="block">
+              {%- endif -%}
+              
+              {%- if block.settings.image != blank -%}
+                <img 
+                  src="{{ block.settings.image | image_url: width: 200 }}"
+                  alt="{{ block.settings.alt | default: 'Logo' }}"
+                  class="h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                  loading="lazy"
+                >
+              {%- else -%}
+                <div class="h-12 w-32 bg-background rounded flex items-center justify-center text-text-muted font-semibold">
+                  Brand {{ forloop.index }}
+                </div>
+              {%- endif -%}
+              
+              {%- if block.settings.link != blank -%}
+                </a>
+              {%- endif -%}
+            </div>
+        {%- endfor -%}
+        
+        {%- if section.blocks.size == 0 -%}
+          {%- for i in (1..6) -%}
+            <div class="swiper-slide flex items-center justify-center px-8">
+              <div class="h-12 w-32 bg-background rounded flex items-center justify-center text-text-muted font-semibold">
+                Brand {{ i }}
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const swiperEl = document.querySelector('[data-logo-swiper]');
+    if (!swiperEl || typeof Swiper === 'undefined') return;
+
+    const autoplay = swiperEl.dataset.autoplay === 'true';
+    const loop = swiperEl.dataset.loop === 'true';
+
+    new Swiper(swiperEl, {
+      loop: loop,
+      autoplay: autoplay ? {
+        delay: 0,
+        disableOnInteraction: false,
+      } : false,
+      speed: 5000,
+      slidesPerView: 2,
+      spaceBetween: 32,
+      allowTouchMove: false,
+      breakpoints: {
+        480: {
+          slidesPerView: 3,
+        },
+        768: {
+          slidesPerView: 4,
+        },
+        1024: {
+          slidesPerView: 5,
+        },
+        1280: {
+          slidesPerView: 6,
+        }
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Logo Carousel",
+  "tag": "section",
+  "class": "section-logo-carousel",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Trusted by Leading Brands",
+      "label": "Heading"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "default": true,
+      "label": "Auto-play"
+    },
+    {
+      "type": "checkbox",
+      "id": "loop",
+      "default": true,
+      "label": "Loop"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Logo Image"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alt Text"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Logo Carousel"
+    }
+  ]
+}
+{% endschema %}

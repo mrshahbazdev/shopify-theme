@@ -1,0 +1,181 @@
+{%- comment -%}
+  Bano Theme - Countdown Timer Section
+  Sales countdown, coming soon timer
+{%- endcomment -%}
+
+<section 
+  id="CountdownTimer-{{ section.id }}"
+  class="section countdown-timer py-20 bg-cover bg-center bg-no-repeat relative"
+  {% if section.settings.background_image != blank %}
+    style="background-image: url('{{ section.settings.background_image | image_url: width: 1920 }}');"
+  {% endif %}
+  data-section-id="{{ section.id }}"
+  data-section-type="countdown-timer"
+>
+  <!-- Overlay -->
+  {%- if section.settings.overlay_opacity > 0 -%}
+    <div 
+      class="absolute inset-0 bg-black"
+      style="opacity: {{ section.settings.overlay_opacity | divided_by: 100 }}"
+    ></div>
+  {%- endif -%}
+  
+  <div class="container-custom relative z-10">
+    <div class="max-w-3xl mx-auto text-center text-white">
+      
+      <!-- Heading -->
+      {%- if section.settings.heading != blank -%}
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+          {{ section.settings.heading }}
+        </h2>
+      {%- endif -%}
+      
+      {%- if section.settings.subheading != blank -%}
+        <p class="text-lg md:text-xl text-white/80 mb-8">
+          {{ section.settings.subheading }}
+        </p>
+      {%- endif -%}
+      
+      <!-- Countdown -->
+      <div 
+        class="countdown-timer flex items-center justify-center gap-4 md:gap-8"
+        data-countdown="{{ section.settings.end_date }}"
+      >
+        {%- liquid
+          assign days = section.settings.end_date | date: "%d" | plus: 0
+          assign hours = section.settings.end_date | date: "%H" | plus: 0
+          assign minutes = section.settings.end_date | date: "%M" | plus: 0
+          assign seconds = section.settings.end_date | date: "%S" | plus: 0
+        -%}
+        
+        <div class="countdown-item text-center">
+          <div class="w-20 h-20 md:w-24 md:h-24 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2">
+            <span class="text-3xl md:text-4xl font-bold" data-days>{{ days | default: 0 | at_least: 0 | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+          <span class="text-xs md:text-sm uppercase tracking-wider text-white/70">{{ 'time.days' | t }}</span>
+        </div>
+        
+        <span class="text-3xl md:text-4xl font-bold text-white/50">:</span>
+        
+        <div class="countdown-item text-center">
+          <div class="w-20 h-20 md:w-24 md:h-24 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2">
+            <span class="text-3xl md:text-4xl font-bold" data-hours>{{ hours | default: 0 | at_least: 0 | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+          <span class="text-xs md:text-sm uppercase tracking-wider text-white/70">{{ 'time.hours' | t }}</span>
+        </div>
+        
+        <span class="text-3xl md:text-4xl font-bold text-white/50">:</span>
+        
+        <div class="countdown-item text-center">
+          <div class="w-20 h-20 md:w-24 md:h-24 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2">
+            <span class="text-3xl md:text-4xl font-bold" data-minutes>{{ minutes | default: 0 | at_least: 0 | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+          <span class="text-xs md:text-sm uppercase tracking-wider text-white/70">{{ 'time.minutes' | t }}</span>
+        </div>
+        
+        <span class="text-3xl md:text-4xl font-bold text-white/50">:</span>
+        
+        <div class="countdown-item text-center">
+          <div class="w-20 h-20 md:w-24 md:h-24 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2">
+            <span class="text-3xl md:text-4xl font-bold" data-seconds>{{ seconds | default: 0 | at_least: 0 | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+          <span class="text-xs md:text-sm uppercase tracking-wider text-white/70">{{ 'time.seconds' | t }}</span>
+        </div>
+      </div>
+      
+      {%- if section.settings.button_text != blank -%}
+        <div class="mt-10">
+          <a 
+            href="{{ section.settings.button_url }}"
+            class="btn {% if section.settings.button_style == 'outline' %}border-2 border-white text-white hover:bg-white hover:text-primary-600{% else %}bg-white text-primary-600 hover:bg-white/90{% endif %} px-8 py-4 text-base font-medium rounded-md transition-all duration-300 inline-flex items-center gap-2"
+          >
+            {{ section.settings.button_text }}
+            {%- if section.settings.show_button_arrow -%}
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+              </svg>
+            {%- endif -%}
+          </a>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Countdown Timer",
+  "tag": "section",
+  "class": "section-countdown-timer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Sale Ends In",
+      "label": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "end_date",
+      "default": "2024-12-31",
+      "label": "End Date",
+      "info": "Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background Image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 50,
+      "unit": "%",
+      "label": "Overlay Opacity"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "default": "outline",
+      "label": "Button Style",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "outline", "label": "Outline" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button_arrow",
+      "default": true,
+      "label": "Show Arrow on Button"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Countdown Timer",
+      "settings": {
+        "heading": "Sale Ends In",
+        "end_date": "2024-12-31"
+      }
+    }
+  ]
+}
+{% endschema %}

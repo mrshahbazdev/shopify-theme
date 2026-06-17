@@ -1,0 +1,209 @@
+{%- comment -%}
+  Bano Theme - FAQ Section
+  Collapsible FAQ items with schema markup for SEO
+{%- endcomment -%}
+
+<section 
+  id="FAQ-{{ section.id }}"
+  class="section faq"
+  data-section-id="{{ section.id }}"
+  data-section-type="faq"
+>
+  <div class="container-custom">
+    
+    <!-- Section Header -->
+    <div class="text-center mb-12">
+      {%- if section.settings.subheading != blank -%}
+        <p class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">
+          {{ section.settings.subheading }}
+        </p>
+      {%- endif -%}
+      
+      {%- if section.settings.heading != blank -%}
+        <h2 class="text-3xl md:text-4xl font-bold text-text-primary">
+          {{ section.settings.heading }}
+        </h2>
+      {%- endif -%}
+    </div>
+    
+    <!-- FAQ Items -->
+    <div class="max-w-3xl mx-auto">
+      <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
+        {%- for block in section.blocks -%}
+          {%- when 'question' -%}
+            <div 
+              class="faq-item border border-border rounded-lg overflow-hidden"
+              itemscope
+              itemprop="mainEntity"
+              itemtype="https://schema.org/Question"
+              {{ block.shopify_attributes }}
+            >
+              <button 
+                type="button"
+                class="faq-item__trigger w-full flex items-center justify-between p-5 text-left bg-background hover:bg-background-secondary transition-colors"
+                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                data-faq-trigger
+              >
+                <span 
+                  class="font-medium text-text-primary pr-4"
+                  itemprop="name"
+                >
+                  {{ block.settings.question }}
+                </span>
+                <svg 
+                  class="faq-item__icon w-5 h-5 text-text-muted flex-shrink-0 transition-transform duration-300"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              <div 
+                class="faq-item__content hidden"
+                itemscope
+                itemprop="acceptedAnswer"
+                itemtype="https://schema.org/Answer"
+              >
+                <div 
+                  class="p-5 pt-0 text-text-secondary"
+                  itemprop="text"
+                >
+                  {{ block.settings.answer }}
+                </div>
+              </div>
+            </div>
+        {%- endfor -%}
+      </div>
+      
+      {%- if section.settings.contact_text != blank -%}
+        <div class="mt-10 text-center p-6 bg-background-secondary rounded-lg">
+          <p class="text-text-secondary">
+            {{ section.settings.contact_text }}
+            <a href="{{ section.settings.contact_link }}" class="text-primary-600 hover:underline font-medium">
+              {{ section.settings.contact_link_text | default: 'Contact Us' }}
+            </a>
+          </p>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const faqItems = document.querySelectorAll('[data-faq-trigger]');
+    
+    faqItems.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const item = trigger.closest('.faq-item');
+        const content = item.querySelector('.faq-item__content');
+        const icon = trigger.querySelector('.faq-item__icon');
+        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+        
+        // Close all other items
+        faqItems.forEach(otherTrigger => {
+          if (otherTrigger !== trigger) {
+            const otherItem = otherTrigger.closest('.faq-item');
+            const otherContent = otherItem.querySelector('.faq-item__content');
+            const otherIcon = otherTrigger.querySelector('.faq-item__icon');
+            
+            otherTrigger.setAttribute('aria-expanded', 'false');
+            otherContent.classList.add('hidden');
+            otherIcon.classList.remove('rotate-180');
+          }
+        });
+        
+        // Toggle current item
+        if (isExpanded) {
+          trigger.setAttribute('aria-expanded', 'false');
+          content.classList.add('hidden');
+          icon.classList.remove('rotate-180');
+        } else {
+          trigger.setAttribute('aria-expanded', 'true');
+          content.classList.remove('hidden');
+          icon.classList.add('rotate-180');
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "section",
+  "class": "section-faq",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Frequently Asked Questions",
+      "label": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "contact_text",
+      "label": "Contact Text",
+      "info": "Text shown below FAQ items to encourage contacting support"
+    },
+    {
+      "type": "text",
+      "id": "contact_link_text",
+      "label": "Contact Link Text"
+    },
+    {
+      "type": "url",
+      "id": "contact_link",
+      "label": "Contact Link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "default": "What is your return policy?",
+          "label": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "default": "<p>We offer a 30-day return policy for all unused items in their original packaging. Simply contact our support team to initiate a return.</p>",
+          "label": "Answer"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        {
+          "type": "question",
+          "settings": {
+            "question": "What is your return policy?",
+            "answer": "<p>We offer a 30-day return policy for all unused items in their original packaging.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Standard shipping takes 5-7 business days. Express shipping is available for 2-3 business days.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,111 @@
+{%- comment -%}
+  Bano Theme - Rich Text Section
+  Simple text content section with optional image
+{%- endcomment -%}
+
+<section 
+  id="RichText-{{ section.id }}"
+  class="section rich-text"
+  data-section-id="{{ section.id }}"
+  data-section-type="rich-text"
+>
+  <div class="container-custom">
+    <div class="max-w-3xl mx-auto text-{{ section.settings.text_alignment }}">
+      
+      {%- if section.settings.subheading != blank -%}
+        <p class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-3">
+          {{ section.settings.subheading }}
+        </p>
+      {%- endif -%}
+      
+      {%- if section.settings.heading != blank -%}
+        <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-6">
+          {{ section.settings.heading }}
+        </h2>
+      {%- endif -%}
+      
+      {%- if section.settings.text != blank -%}
+        <div class="prose prose-lg text-text-secondary mb-8">
+          {{ section.settings.text }}
+        </div>
+      {%- endif -%}
+      
+      {%- if section.settings.button_text != blank -%}
+        <a 
+          href="{{ section.settings.button_url }}"
+          class="btn-primary px-8 py-3 inline-flex items-center gap-2"
+        >
+          {{ section.settings.button_text }}
+          {%- if section.settings.show_button_arrow -%}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Rich Text",
+  "tag": "section",
+  "class": "section-rich-text",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Talk about your brand",
+      "label": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "default": "center",
+      "label": "Text Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button_arrow",
+      "default": true,
+      "label": "Show Arrow on Button"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rich Text",
+      "settings": {
+        "heading": "Talk about your brand",
+        "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome visitors to your store.</p>",
+        "text_alignment": "center"
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,241 @@
+{%- comment -%}
+  Bano Theme - Wishlist Drawer
+  Slide-out wishlist panel with saved products
+{%- endcomment -%}
+
+<div 
+  id="WishlistDrawer" 
+  class="drawer fixed inset-0 z-[1300] pointer-events-none"
+  data-wishlist-drawer
+>
+  <!-- Overlay -->
+  <div 
+    class="drawer-overlay absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300"
+    data-wishlist-drawer-overlay
+  ></div>
+  
+  <!-- Drawer Panel -->
+  <div 
+    class="drawer-panel absolute top-0 right-0 bottom-0 w-full max-w-md bg-background shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+    data-wishlist-drawer-panel
+    data-focus-trap
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-border">
+      <h2 class="text-lg font-semibold text-text-primary flex items-center gap-2">
+        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+        {{ 'wishlist.title' | t }}
+        <span class="text-sm font-normal text-text-muted ml-2">
+          (<span data-wishlist-count-display>0</span> items)
+        </span>
+      </h2>
+      <button 
+        type="button"
+        class="p-2 hover:bg-background-secondary rounded-full transition-colors"
+        data-wishlist-drawer-close
+        aria-label="Close wishlist"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Wishlist Content -->
+    <div id="WishlistDrawerContent" class="flex-1 overflow-y-auto">
+      <div class="wishlist-empty p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-text-primary mb-2">{{ 'wishlist.empty.title' | t }}</h3>
+        <p class="text-text-muted mb-6">{{ 'wishlist.empty.subtitle' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn-primary px-6 py-3">
+          {{ 'wishlist.empty.continue_shopping' | t }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Wishlist Drawer functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const drawer = document.getElementById('WishlistDrawer');
+    if (!drawer) return;
+
+    const overlay = drawer.querySelector('[data-wishlist-drawer-overlay]');
+    const panel = drawer.querySelector('[data-wishlist-drawer-panel]');
+    const closeBtn = drawer.querySelector('[data-wishlist-drawer-close]');
+    const content = drawer.querySelector('#WishlistDrawerContent');
+    const countDisplay = drawer.querySelector('[data-wishlist-count-display]');
+
+    let wishlist = JSON.parse(localStorage.getItem('bano-wishlist') || '[]');
+
+    // Open drawer
+    function openWishlistDrawer() {
+      drawer.classList.add('open');
+      drawer.classList.remove('pointer-events-none');
+      overlay.classList.remove('opacity-0');
+      panel.classList.remove('translate-x-full');
+      renderWishlist();
+    }
+
+    // Close drawer
+    function closeWishlistDrawer() {
+      drawer.classList.remove('open');
+      drawer.classList.add('pointer-events-none');
+      overlay.classList.add('opacity-0');
+      panel.classList.add('translate-x-full');
+    }
+
+    // Render wishlist
+    async function renderWishlist() {
+      countDisplay.textContent = wishlist.length;
+
+      if (wishlist.length === 0) {
+        content.innerHTML = `
+          <div class="wishlist-empty p-8 text-center">
+            <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+              <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-text-primary mb-2">${themeStrings?.wishlist?.empty?.title || 'Your wishlist is empty'}</h3>
+            <p class="text-text-muted mb-6">${themeStrings?.wishlist?.empty?.subtitle || 'Add items to your wishlist to save them for later.'}</p>
+            <a href="/collections/all" class="btn-primary px-6 py-3">${themeStrings?.wishlist?.empty?.continue_shopping || 'Continue Shopping'}</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Fetch product data
+      const productIds = wishlist.map(w => w.id);
+      const response = await fetch(`/products.js?ids=${productIds.join(',')}`);
+      const products = await response.json();
+
+      if (!products.length) {
+        content.innerHTML = `
+          <div class="p-8 text-center">
+            <p class="text-text-muted">Unable to load wishlist items.</p>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="p-4 space-y-4">
+          ${products.map(product => {
+            const firstVariant = product.variants[0];
+            const onSale = firstVariant.compare_at_price > firstVariant.price;
+            
+            return `
+              <div class="flex gap-4 p-3 bg-background-secondary rounded-lg" data-wishlist-item="${product.id}">
+                <a href="${product.url}" class="flex-shrink-0">
+                  <img src="${product.featured_image}" alt="${product.title}" class="w-20 h-20 object-cover rounded-md">
+                </a>
+                <div class="flex-1 min-w-0">
+                  <a href="${product.url}" class="font-medium text-text-primary hover:text-primary-600 line-clamp-2">
+                    ${product.title}
+                  </a>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-sm font-medium ${onSale ? 'text-sale' : 'text-text-primary'}">
+                      ${Shopify.formatMoney(firstVariant.price, window.themeStrings?.money_format || '${{amount}}')}
+                    </span>
+                    ${onSale ? `
+                      <span class="text-sm text-text-muted line-through">
+                        ${Shopify.formatMoney(firstVariant.compare_at_price, window.themeStrings?.money_format || '${{amount}}')}
+                      </span>
+                    ` : ''}
+                  </div>
+                  <div class="flex items-center gap-2 mt-2">
+                    <button 
+                      type="button"
+                      class="text-sm text-primary-600 hover:underline"
+                      data-move-to-cart="${product.id}"
+                      ${!firstVariant.available ? 'disabled' : ''}
+                    >
+                      ${firstVariant.available ? 'Move to Cart' : 'Out of Stock'}
+                    </button>
+                    <span class="text-text-muted">|</span>
+                    <button 
+                      type="button"
+                      class="text-sm text-error hover:underline"
+                      data-remove-wishlist="${product.id}"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      // Add event listeners
+      content.querySelectorAll('[data-remove-wishlist]').forEach(btn => {
+        btn.addEventListener('click', () => removeFromWishlist(btn.dataset.removeWishlist));
+      });
+
+      content.querySelectorAll('[data-move-to-cart]').forEach(btn => {
+        btn.addEventListener('click', () => moveToCart(btn.dataset.moveToCart));
+      });
+    }
+
+    // Remove from wishlist
+    function removeFromWishlist(productId) {
+      wishlist = wishlist.filter(w => w.id !== productId);
+      localStorage.setItem('bano-wishlist', JSON.stringify(wishlist));
+      renderWishlist();
+      document.querySelectorAll('[data-wishlist-count]').forEach(el => {
+        el.textContent = wishlist.length;
+      });
+    }
+
+    // Move to cart
+    async function moveToCart(productId) {
+      const product = wishlist.find(w => w.id === productId);
+      if (!product) return;
+
+      try {
+        const response = await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: productId, quantity: 1 })
+        });
+
+        if (response.ok) {
+          removeFromWishlist(productId);
+          // Open cart drawer
+          document.querySelector('[data-cart-toggle]')?.click();
+        }
+      } catch (error) {
+        console.error('Error moving to cart:', error);
+      }
+    }
+
+    // Event listeners
+    document.querySelectorAll('[data-wishlist-toggle]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openWishlistDrawer();
+      });
+    });
+
+    closeBtn?.addEventListener('click', closeWishlistDrawer);
+    overlay?.addEventListener('click', closeWishlistDrawer);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Wishlist Drawer",
+  "tag": "section",
+  "class": "section-wishlist-drawer",
+  "limit": 1
+}
+{% endschema %}

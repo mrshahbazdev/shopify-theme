@@ -1,0 +1,167 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - labeled
+      - unlabeled
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  status: {}
+
+# Required permissions for auto-merge
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    # Only run for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Wait for CI checks to complete
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Wait up to 5 minutes for all status checks to complete
+            const MAX_WAIT = 300; // 5 minutes
+            const CHECK_INTERVAL = 10; // 10 seconds
+            let waited = 0;
+            
+            async function waitForChecks() {
+              while (waited < MAX_WAIT) {
+                const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: context.payload.pull_request.head.sha
+                });
+                
+                // Get all check runs for the commit
+                const { data: checks } = await github.rest.checks.listForRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: context.payload.pull_request.head.sha
+                });
+                
+                // Check if there are any pending checks
+                const pendingStatuses = statuses.filter(s => s.state === 'pending');
+                const pendingChecks = checks.check_runs.filter(c => c.status === 'in_progress' || c.status === 'queued');
+                
+                if (pendingStatuses.length === 0 && pendingChecks.length === 0) {
+                  console.log('All checks completed');
+                  return true;
+                }
+                
+                console.log(`Waiting for checks... (${waited}s elapsed)`);
+                await new Promise(r => setTimeout(r, CHECK_INTERVAL * 1000));
+                waited += CHECK_INTERVAL;
+              }
+              return false;
+            }
+            
+            await waitForChecks();
+            core.setOutput('checks_completed', 'true');
+
+      - name: Get PR details
+        id: pr_details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            // Check if PR is mergeable (no conflicts, not draft, open)
+            const isMergeable = pr.data.mergeable === true && 
+                               pr.data.draft === false && 
+                               pr.data.state === 'open';
+            
+            // Get mergeable state
+            const mergeableState = pr.data.mergeable_state;
+            
+            // Get all commit statuses
+            const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha
+            });
+            
+            // Get check runs
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha
+            });
+            
+            // Check if all statuses are success
+            const allStatusesPassed = statuses.length === 0 || 
+              statuses.every(s => s.state === 'success');
+            
+            // Check if all check runs passed
+            const allChecksPassed = checks.check_runs.length === 0 ||
+              checks.check_runs.every(c => c.conclusion === 'success');
+            
+            // Check for CI failure labels
+            const ciFailureLabels = ['ci-failed', 'needs-rebase', 'do-not-merge', 'wip'];
+            const hasCILabel = pr.data.labels.some(l => 
+              ciFailureLabels.includes(l.name.toLowerCase())
+            );
+            
+            console.log('PR Title:', pr.data.title);
+            console.log('Mergeable:', isMergeable);
+            console.log('Mergeable State:', mergeableState);
+            console.log('All statuses passed:', allStatusesPassed);
+            console.log('All checks passed:', allChecksPassed);
+            console.log('Has CI failure label:', hasCILabel);
+            
+            core.setOutput('is_mergeable', isMergeable);
+            core.setOutput('mergeable_state', mergeableState);
+            core.setOutput('all_checks_passed', allStatusesPassed && allChecksPassed);
+            core.setOutput('has_ci_failure_label', hasCILabel);
+
+      - name: Merge PR if conditions are met
+        if: steps.pr_details.outputs.is_mergeable == 'true' && 
+            steps.pr_details.outputs.all_checks_passed == 'true' &&
+            steps.pr_details.outputs.has_ci_failure_label == 'false' &&
+            (steps.pr_details.outputs.mergeable_state == 'clean' || steps.pr_details.outputs.mergeable_state == 'unstable')
+        run: |
+          echo "✅ All conditions met! Merging PR..."
+          
+          # Enable auto-merge using GitHub's merge API
+          curl -s -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge" \
+            -d '{
+              "merge_method": "squash",
+              "commit_title": "🤖 chore(deps): auto-merged by Dependabot"
+            }' | jq -r '.merged // false' && echo "PR merged successfully!" || echo "PR merge failed or already merged"
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add comment if cannot merge
+        if: steps.pr_details.outputs.is_mergeable == 'false' || 
+            steps.pr_details.outputs.all_checks_passed == 'false' ||
+            steps.pr_details.outputs.has_ci_failure_label == 'true'
+        run: |
+          echo "⚠️ PR cannot be auto-merged yet."
+          echo "Mergeable: ${{ steps.pr_details.outputs.is_mergeable }}"
+          echo "All checks passed: ${{ steps.pr_details.outputs.all_checks_passed }}"
+          echo "Has CI failure label: ${{ steps.pr_details.outputs.has_ci_failure_label }}"
+          echo "Mergeable state: ${{ steps.pr_details.outputs.mergeable_state }}"

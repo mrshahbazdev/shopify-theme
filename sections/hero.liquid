@@ -1,0 +1,551 @@
+{%- comment -%}
+  Bano Theme - Hero Section
+  Full-width hero banner with slides, video, parallax, and CTA buttons
+{%- endcomment -%}
+
+{%- liquid
+  assign section_height = section.settings.section_height
+  assign show_arrows = section.settings.show_arrows
+  assign show_dots = section.settings.show_dots
+  assign autoplay = section.settings.autoplay
+  assign autoplay_speed = section.settings.autoplay_speed | times: 1000
+  assign parallax = section.settings.parallax_effect
+-%}
+
+{%- style -%}
+  .hero-slide {
+    min-height: {{ section_height }}px;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-slide {
+      min-height: {{ section_height | times: 0.6 }}px;
+    }
+  }
+  
+  .hero-slide--parallax {
+    background-attachment: fixed;
+  }
+  
+  .hero-content {
+    animation: fadeUp 0.8s ease-out forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+  }
+  
+  .hero-slide.swiper-slide-active .hero-content {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+  
+  .hero-slide.swiper-slide-active .hero-content--left { animation-delay: 0.1s; }
+  .hero-slide.swiper-slide-active .hero-content--center { animation-delay: 0.1s; }
+  .hero-slide.swiper-slide-active .hero-content--right { animation-delay: 0.1s; }
+  
+  .hero-slide.swiper-slide-active .btn-hero:first-of-type { animation-delay: 0.3s; }
+  .hero-slide.swiper-slide-active .btn-hero:last-of-type { animation-delay: 0.4s; }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+{%- endstyle -%}
+
+<section 
+  id="Hero-{{ section.id }}"
+  class="hero-section relative overflow-hidden"
+  data-section-id="{{ section.id }}"
+  data-section-type="hero"
+>
+  <div 
+    class="hero-swiper swiper-container"
+    data-hero-swiper
+    data-autoplay="{% if autoplay %}true{% else %}false{% endif %}"
+    data-autoplay-speed="{{ autoplay_speed }}"
+    data-show-arrows="{{ show_arrows }}"
+    data-show-dots="{{ show_dots }}"
+  >
+    <div class="swiper-wrapper">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'slide' -%}
+            <div 
+              class="hero-slide swiper-slide relative flex items-center justify-center bg-cover bg-center"
+              {{ block.shopify_attributes }}
+              data-slide-index="{{ forloop.index0 }}"
+            >
+              <!-- Background Image/Video -->
+              {%- if block.settings.video_url != blank -%}
+                <video 
+                  class="absolute inset-0 w-full h-full object-cover"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                >
+                  <source src="{{ block.settings.video_url }}" type="video/mp4">
+                </video>
+              {%- elsif block.settings.image != blank -%}
+                <div 
+                  class="absolute inset-0 bg-cover bg-center"
+                  {% if parallax %}
+                    style="background-image: url('{{ block.settings.image | image_url: width: 1920 }}');"
+                  {% else %}
+                    data-bg-image="{{ block.settings.image | image_url: width: 1920 }}"
+                  {% endif %}
+                >
+                  {%- if parallax -%}
+                    <img 
+                      src="{{ block.settings.image | image_url: width: 1920 }}"
+                      alt=""
+                      class="sr-only"
+                    >
+                  {%- endif -%}
+                </div>
+              {%- else -%}
+                <div class="absolute inset-0 bg-gradient-to-br from-primary-600 to-secondary-600"></div>
+              {%- endif -%}
+              
+              <!-- Overlay -->
+              {%- if block.settings.overlay_opacity > 0 -%}
+                <div 
+                  class="absolute inset-0 bg-black"
+                  style="opacity: {{ block.settings.overlay_opacity | divided_by: 100 }}"
+                ></div>
+              {%- endif -%}
+              
+              <!-- Content -->
+              <div class="hero-content hero-content--{{ block.settings.content_alignment }} relative z-10 container-custom text-center text-white">
+                {%- if block.settings.subheading != blank -%}
+                  <p 
+                    class="text-sm md:text-base font-medium tracking-widest uppercase mb-4 text-white/90"
+                    style="color: {{ block.settings.subheading_color }}"
+                  >
+                    {{ block.settings.subheading }}
+                  </p>
+                {%- endif -%}
+                
+                {%- if block.settings.heading != blank -%}
+                  <h1 
+                    class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6"
+                    style="color: {{ block.settings.heading_color }}"
+                  >
+                    {%- if block.settings.heading_ Highlight != blank -%}
+                      {{ block.settings.heading | replace: block.settings.heading_highlight, '<span class="gradient-text">' | append: '</span>' | html_safe }}
+                    {%- else -%}
+                      {{ block.settings.heading }}
+                    {%- endif -%}
+                  </h1>
+                {%- endif -%}
+                
+                {%- if block.settings.description != blank -%}
+                  <p 
+                    class="text-base md:text-lg max-w-2xl mx-auto mb-8 text-white/80"
+                    style="color: {{ block.settings.description_color }}"
+                  >
+                    {{ block.settings.description }}
+                  </p>
+                {%- endif -%}
+                
+                <!-- CTA Buttons -->
+                {%- if block.settings.button_text != blank or block.settings.button_text_secondary != blank -%}
+                  <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    {%- if block.settings.button_text != blank -%}
+                      <a 
+                        href="{{ block.settings.button_url }}"
+                        class="btn-hero btn {% if block.settings.primary_button_style == 'solid' %}bg-white text-primary-600 hover:bg-white/90{% else %}border-2 border-white text-white hover:bg-white hover:text-primary-600{% endif %} px-8 py-4 text-base font-medium rounded-md transition-all duration-300 inline-flex items-center gap-2"
+                      >
+                        {{ block.settings.button_text }}
+                        {%- if block.settings.button_arrow -%}
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                          </svg>
+                        {%- endif -%}
+                      </a>
+                    {%- endif -%}
+                    
+                    {%- if block.settings.button_text_secondary != blank -%}
+                      <a 
+                        href="{{ block.settings.button_url_secondary }}"
+                        class="btn-hero btn border-2 border-white/50 text-white hover:border-white px-8 py-4 text-base font-medium rounded-md transition-all duration-300"
+                      >
+                        {{ block.settings.button_text_secondary }}
+                      </a>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+                
+                <!-- Countdown Timer -->
+                {%- if block.settings.show_countdown and block.settings.countdown_date != blank -%}
+                  <div class="mt-10" data-countdown="{{ block.settings.countdown_date }}">
+                    <div class="flex items-center justify-center gap-4">
+                      <div class="text-center">
+                        <div class="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2">
+                          <span class="text-2xl md:text-3xl font-bold" data-days>00</span>
+                        </div>
+                        <span class="text-xs uppercase tracking-wider text-white/70">{{ 'time.days' | t }}</span>
+                      </div>
+                      <span class="text-2xl font-bold text-white/50">:</span>
+                      <div class="text-center">
+                        <div class="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2">
+                          <span class="text-2xl md:text-3xl font-bold" data-hours>00</span>
+                        </div>
+                        <span class="text-xs uppercase tracking-wider text-white/70">{{ 'time.hours' | t }}</span>
+                      </div>
+                      <span class="text-2xl font-bold text-white/50">:</span>
+                      <div class="text-center">
+                        <div class="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2">
+                          <span class="text-2xl md:text-3xl font-bold" data-minutes>00</span>
+                        </div>
+                        <span class="text-xs uppercase tracking-wider text-white/70">{{ 'time.minutes' | t }}</span>
+                      </div>
+                      <span class="text-2xl font-bold text-white/50">:</span>
+                      <div class="text-center">
+                        <div class="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2">
+                          <span class="text-2xl md:text-3xl font-bold" data-seconds>00</span>
+                        </div>
+                        <span class="text-xs uppercase tracking-wider text-white/70">{{ 'time.seconds' | t }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {%- endif -%}
+              </div>
+              
+              <!-- Scroll Indicator -->
+              {%- if block.settings.show_scroll_indicator -%}
+                <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+                  <div class="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
+                    <div class="w-1 h-3 bg-white rounded-full animate-bounce"></div>
+                  </div>
+                </div>
+              {%- endif -%}
+            </div>
+        {%- endcase -%}
+      {%- else -%}
+        <!-- Default Slide -->
+        <div class="hero-slide swiper-slide relative flex items-center justify-center">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-600 to-secondary-600"></div>
+          <div class="hero-content hero-content--center relative z-10 container-custom text-center text-white">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6">
+              Welcome to Our Store
+            </h1>
+            <p class="text-base md:text-lg max-w-2xl mx-auto mb-8 text-white/80">
+              Discover amazing products with the best quality and prices.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="/collections/all" class="btn bg-white text-primary-600 hover:bg-white/90 px-8 py-4 text-base font-medium rounded-md transition-all duration-300">
+                Shop Now
+              </a>
+              <a href="/pages/about-us" class="btn border-2 border-white text-white hover:bg-white hover:text-primary-600 px-8 py-4 text-base font-medium rounded-md transition-all duration-300">
+                Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+    
+    <!-- Navigation Arrows -->
+    {%- if show_arrows and section.blocks.size > 1 -%}
+      <div class="hero-navigation absolute top-1/2 left-0 right-0 transform -translate-y-1/2 flex justify-between px-4 md:px-8 z-20 pointer-events-none">
+        <button 
+          type="button"
+          class="hero-nav-btn hero-prev w-12 h-12 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-300 pointer-events-auto"
+          aria-label="Previous slide"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button 
+          type="button"
+          class="hero-nav-btn hero-next w-12 h-12 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-300 pointer-events-auto"
+          aria-label="Next slide"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    {%- endif -%}
+    
+    <!-- Pagination Dots -->
+    {%- if show_dots and section.blocks.size > 1 -%}
+      <div class="hero-pagination absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2">
+        {%- for block in section.blocks -%}
+          <button 
+            type="button"
+            class="hero-dot w-2 h-2 rounded-full transition-all duration-300 {% if forloop.first %}bg-white w-8{% else %}bg-white/50 hover:bg-white/80{% endif %}"
+            aria-label="Go to slide {{ forloop.index }}"
+          ></button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  // Initialize Hero Swiper
+  document.addEventListener('DOMContentLoaded', function() {
+    const heroSwiper = document.querySelector('[data-hero-swiper]');
+    if (!heroSwiper || typeof Swiper === 'undefined') return;
+
+    const autoplay = heroSwiper.dataset.autoplay === 'true';
+    const autoplaySpeed = parseInt(heroSwiper.dataset.autoplaySpeed) || 5000;
+
+    new Swiper(heroSwiper, {
+      loop: true,
+      autoplay: autoplay ? {
+        delay: autoplaySpeed,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true
+      } : false,
+      effect: 'fade',
+      fadeEffect: {
+        crossFade: true
+      },
+      navigation: {
+        nextEl: '.hero-next',
+        prevEl: '.hero-prev',
+      },
+      pagination: {
+        el: '.hero-pagination',
+        clickable: true,
+        renderBullet: function(index, className) {
+          return '<button type="button" class="' + className + '" aria-label="Go to slide ' + (index + 1) + '"></button>';
+        }
+      },
+      on: {
+        init: function() {
+          heroSwiper.classList.add('initialized');
+        },
+        slideChange: function() {
+          // Update pagination active state
+          const dots = document.querySelectorAll('.hero-dot');
+          dots.forEach((dot, index) => {
+            if (index === this.realIndex) {
+              dot.classList.add('bg-white', 'w-8');
+              dot.classList.remove('bg-white/50');
+            } else {
+              dot.classList.remove('bg-white', 'w-8');
+              dot.classList.add('bg-white/50');
+            }
+          });
+        }
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "section",
+  "class": "section-hero",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "Section Height",
+      "default": "600",
+      "options": [
+        { "value": "400", "label": "Small (400px)" },
+        { "value": "500", "label": "Medium (500px)" },
+        { "value": "600", "label": "Large (600px)" },
+        { "value": "700", "label": "Extra Large (700px)" },
+        { "value": "800", "label": "Full Height (800px)" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "default": true,
+      "label": "Show Navigation Arrows"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "default": true,
+      "label": "Show Pagination Dots"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "default": true,
+      "label": "Auto-play Slides"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "default": 5,
+      "unit": "sec",
+      "label": "Auto-play Speed"
+    },
+    {
+      "type": "checkbox",
+      "id": "parallax_effect",
+      "default": false,
+      "label": "Enable Parallax Effect"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "limit": 5,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background Image"
+        },
+        {
+          "type": "text",
+          "id": "video_url",
+          "label": "Video URL (optional)",
+          "info": "MP4 video URL for video background"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "min": 0,
+          "max": 90,
+          "step": 5,
+          "default": 40,
+          "unit": "%",
+          "label": "Overlay Opacity"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment",
+          "default": "center",
+          "label": "Content Alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading"
+        },
+        {
+          "type": "color",
+          "id": "subheading_color",
+          "default": "#ffffff",
+          "label": "Subheading Color"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Your Heading Here",
+          "label": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "heading_highlight",
+          "label": "Heading Highlight Text",
+          "info": "Text within heading to highlight"
+        },
+        {
+          "type": "color",
+          "id": "heading_color",
+          "default": "#ffffff",
+          "label": "Heading Color"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description"
+        },
+        {
+          "type": "color",
+          "id": "description_color",
+          "default": "#ffffff",
+          "label": "Description Color"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Primary Button Text"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "Primary Button URL"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_arrow",
+          "default": true,
+          "label": "Show Arrow on Primary Button"
+        },
+        {
+          "type": "select",
+          "id": "primary_button_style",
+          "default": "solid",
+          "label": "Primary Button Style",
+          "options": [
+            { "value": "solid", "label": "Solid" },
+            { "value": "outline", "label": "Outline" }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "button_text_secondary",
+          "label": "Secondary Button Text"
+        },
+        {
+          "type": "url",
+          "id": "button_url_secondary",
+          "label": "Secondary Button URL"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_countdown",
+          "default": false,
+          "label": "Show Countdown Timer"
+        },
+        {
+          "type": "text",
+          "id": "countdown_date",
+          "label": "Countdown End Date",
+          "info": "Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_scroll_indicator",
+          "default": false,
+          "label": "Show Scroll Indicator"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "heading": "Welcome to Our Store",
+            "description": "Discover amazing products with the best quality and prices.",
+            "button_text": "Shop Now",
+            "button_url": "/collections/all"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

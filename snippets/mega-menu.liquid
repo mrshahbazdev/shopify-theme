@@ -1,0 +1,90 @@
+{%- comment -%}
+  Bano Theme - Mega Menu Snippet
+  Multi-column dropdown navigation
+{%- endcomment -%}
+
+{%- if blocks.size > 0 -%}
+  <nav class="header__mega-menu hidden lg:block">
+    {%- for block in blocks -%}
+      {%- assign link_title = block.settings.title | downcase -%}
+      {%- assign current_link = linklists[section.settings.menu].links | where: 'title', block.settings.title | first -%}
+      
+      {%- if current_link -%}
+        <div class="relative group" data-mega-menu-item>
+          <a 
+            href="{{ current_link.url }}"
+            class="header__link flex items-center gap-1 py-2 text-sm font-medium text-text-primary hover:text-primary-600 transition-colors"
+          >
+            {{ current_link.title }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </a>
+          
+          <!-- Mega Menu Dropdown -->
+          <div class="mega-menu absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[600px] bg-background rounded-xl shadow-xl border border-border opacity-0 invisible translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 z-50">
+            <div class="p-6 grid grid-cols-4 gap-6">
+              <!-- Links Columns -->
+              <div class="col-span-3 grid grid-cols-3 gap-6">
+                {%- for childlink in current_link.links -%}
+                  <div class="mega-menu__column">
+                    <a 
+                      href="{{ childlink.url }}"
+                      class="block text-sm font-semibold text-text-primary hover:text-primary-600 mb-3"
+                    >
+                      {{ childlink.title }}
+                    </a>
+                    
+                    {%- if childlink.links.size > 0 -%}
+                      <ul class="space-y-2">
+                        {%- for grandchildlink in childlink.links -%}
+                          <li>
+                            <a 
+                              href="{{ grandchildlink.url }}"
+                              class="text-sm text-text-secondary hover:text-primary-600 transition-colors"
+                            >
+                              {{ grandchildlink.title }}
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </div>
+                {%- endfor -%}
+              </div>
+              
+              <!-- Featured Image -->
+              {%- if block.settings.image != blank -%}
+                <div class="col-span-1">
+                  <a href="{{ block.settings.link | default: current_link.url }}" class="block">
+                    <div class="aspect-3/4 rounded-lg overflow-hidden bg-background-secondary">
+                      <img 
+                        src="{{ block.settings.image | image_url: width: 300 }}"
+                        alt="{{ block.settings.title }}"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      >
+                    </div>
+                    {%- if block.settings.promo_text != blank -%}
+                      <p class="text-xs text-text-muted mt-2">{{ block.settings.promo_text }}</p>
+                    {%- endif -%}
+                  </a>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  </nav>
+{%- endif -%}
+
+<style>
+  .mega-menu {
+    pointer-events: none;
+  }
+  
+  [data-mega-menu-item]:hover .mega-menu {
+    pointer-events: auto;
+  }
+</style>

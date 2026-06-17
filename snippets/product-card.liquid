@@ -1,0 +1,254 @@
+{%- comment -%}
+  Bano Theme - Product Card Snippet
+  Multiple card layouts: default, minimal, overlay
+{%- endcomment -%}
+
+{%- liquid
+  assign product = all_products[product]
+  assign product = product
+  assign image_ratio = settings.product_image_ratio
+  assign show_quick_add = settings.show_quick_add
+  assign show_wishlist = settings.show_wishlist
+  assign show_compare = settings.show_compare
+  assign show_sale_badge = settings.show_sale_badge
+  assign show_new_badge = settings.show_new_badge
+  assign show_rating = settings.show_rating
+  assign show_vendor = settings.show_vendor
+  assign card_style = settings.product_card_style | default: 'default'
+  
+  if image_ratio == 'portrait'
+    assign aspect_ratio = 'aspect-3/4'
+  elsif image_ratio == 'landscape'
+    assign aspect_ratio = 'aspect-4/3'
+  else
+    assign aspect_ratio = 'aspect-square'
+  endif
+  
+  assign first_variant = product.selected_or_first_available_variant
+  assign price = first_variant.price | money_without_currency
+  assign compare_at_price = first_variant.compare_at_price | money_without_currency
+  assign available = first_variant.available
+  assign on_sale = first_variant.compare_at_price > first_variant.price
+  assign is_new = false
+  
+  for tag in product.tags
+    if tag contains 'new' or tag contains 'New'
+      assign is_new = true
+      break
+    endif
+  endfor
+  
+  assign hovered = false
+-%}
+
+<div 
+  class="product-card product-card--{{ card_style }} group relative bg-background rounded-lg overflow-hidden border border-border transition-all duration-300 hover:shadow-lg"
+  data-product-id="{{ product.id }}"
+>
+  <!-- Badges -->
+  <div class="absolute top-3 left-3 z-10 flex flex-col gap-2">
+    {%- if on_sale and show_sale_badge -%}
+      <span class="badge-sale px-2 py-1 text-xs font-semibold">
+        {%- if settings.show_sale_percentage and first_variant.compare_at_price > 0 -%}
+          -{{ product.selected_or_first_available_variant.price | times: 100.0 | divided_by: first_variant.compare_at_price | round | append: '%' }}
+        {%- else -%}
+          {{ 'product.sale' | t }}
+        {%- endif -%}
+      </span>
+    {%- endif -%}
+    
+    {%- if is_new and show_new_badge -%}
+      <span class="badge-new px-2 py-1 text-xs font-semibold">
+        {{ 'product.new' | t }}
+      </span>
+    {%- endif -%}
+    
+    {%- unless available -%}
+      <span class="badge bg-text-muted text-white px-2 py-1 text-xs font-semibold">
+        {{ 'product.sold_out' | t }}
+      </span>
+    {%- endunless -%}
+  </div>
+  
+  <!-- Wishlist & Compare Buttons -->
+  <div class="absolute top-3 right-3 z-10 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+    {%- if show_wishlist -%}
+      <button 
+        type="button"
+        class="product-card__wishlist w-9 h-9 bg-background rounded-full flex items-center justify-center text-text-secondary hover:text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
+        data-wishlist-btn
+        data-product-id="{{ product.id }}"
+        data-product-url="{{ product.url }}"
+        aria-label="{{ 'product.wishlist' | t }}"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+      </button>
+    {%- endif -%}
+    
+    {%- if show_compare -%}
+      <button 
+        type="button"
+        class="product-card__compare w-9 h-9 bg-background rounded-full flex items-center justify-center text-text-secondary hover:text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
+        data-compare-btn
+        data-product-id="{{ product.id }}"
+        data-product-url="{{ product.url }}"
+        aria-label="{{ 'product.compare' | t }}"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </button>
+    {%- endif -%}
+  </div>
+  
+  <!-- Image -->
+  <a href="{{ product.url }}" class="product-card__image-link block relative overflow-hidden">
+    <div class="{{ aspect_ratio }} bg-background-secondary">
+      {%- if product.featured_image != blank -%}
+        <img 
+          src="{{ product.featured_image | image_url: width: 600 }}"
+          alt="{{ product.featured_image.alt | escape }}"
+          class="product-card__image absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+          width="600"
+          height="{{ 600 | divided_by: product.featured_image.aspect_ratio | round }}"
+        >
+        
+        {%- if product.images.size > 1 -%}
+          <img 
+            src="{{ product.images[1] | image_url: width: 600 }}"
+            alt="{{ product.images[1].alt | escape }}"
+            class="product-card__image-hover absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-0 group-hover:opacity-100"
+            loading="lazy"
+            width="600"
+            height="{{ 600 | divided_by: product.images[1].aspect_ratio | round }}"
+          >
+        {%- endif -%}
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
+      {%- endif -%}
+    </div>
+    
+    <!-- Quick View Button -->
+    {%- if show_quick_add and available -%}
+      <div class="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button 
+          type="button"
+          class="product-card__quick-view w-full py-2 bg-background/95 backdrop-blur-sm text-text-primary text-sm font-medium rounded-md hover:bg-background transition-colors"
+          data-quick-view
+          data-product-url="{{ product.url }}"
+        >
+          {{ 'product.quick_view' | t }}
+        </button>
+      </div>
+    {%- endif -%}
+  </a>
+  
+  <!-- Content -->
+  <div class="product-card__content p-4">
+    {%- if show_vendor and product.vendor != blank -%}
+      <p class="text-xs text-text-muted uppercase tracking-wider mb-1">
+        {{ product.vendor }}
+      </p>
+    {%- endif -%}
+    
+    <a href="{{ product.url }}" class="block">
+      <h3 class="product-card__title text-sm font-medium text-text-primary line-clamp-2 mb-2 hover:text-primary-600 transition-colors">
+        {{ product.title }}
+      </h3>
+    </a>
+    
+    {%- if show_rating and product.metafields.reviews.rating.value != blank -%}
+      <div class="flex items-center gap-1 mb-2">
+        <div class="flex items-center">
+          {%- assign rating = product.metafields.reviews.rating.value -%}
+          {%- assign rating_max = product.metafields.reviews.rating.value.scale_max -%}
+          {%- for i in (1..5) -%}
+            {%- if forloop.index <= rating -%}
+              <svg class="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+              </svg>
+            {%- else -%}
+              <svg class="w-3.5 h-3.5 text-gray-300 fill-current" viewBox="0 0 20 20">
+                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+              </svg>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+        <span class="text-xs text-text-muted">({{ product.metafields.reviews.rating_count }})</span>
+      </div>
+    {%- endif -%}
+    
+    <div class="product-card__price flex items-center gap-2">
+      <span class="text-sm font-semibold {% if on_sale %}text-sale{% else %}text-text-primary{% endif %}">
+        {{ product.selected_or_first_available_variant.price | money }}
+      </span>
+      
+      {%- if on_sale -%}
+        <span class="text-sm text-text-muted line-through">
+          {{ product.selected_or_first_available_variant.compare_at_price | money }}
+        </span>
+      {%- endif -%}
+    </div>
+    
+    <!-- Color Swatches -->
+    {%- if product.options_with_values.size > 0 -%}
+      {%- for option in product.options_with_values -%}
+        {%- if option.name contains 'Color' or option.name contains 'colour' -%}
+          {%- assign color_count = 0 -%}
+          <div class="product-card__swatches flex items-center gap-1.5 mt-3">
+            {%- for value in option.values -%}
+              {%- if color_count < 5 -%}
+                {%- assign swatch_color = value | downcase -%}
+                <span 
+                  class="w-4 h-4 rounded-full border border-border cursor-pointer"
+                  style="background-color: {{ swatch_color }};"
+                  title="{{ value }}"
+                ></span>
+                {%- assign color_count = color_count | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if option.values.size > 5 -%}
+              <span class="text-xs text-text-muted">+{{ option.values.size | minus: 5 }}</span>
+            {%- endif -%}
+          </div>
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+    
+    <!-- Quick Add Button (Mobile) -->
+    {%- if show_quick_add and available -%}
+      <button 
+        type="button"
+        class="product-card__add-to-cart w-full mt-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 lg:hidden"
+        data-add-to-cart
+        data-product-id="{{ product.id }}"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        {{ 'product.add_to_cart' | t }}
+      </button>
+    {%- endif -%}
+  </div>
+</div>
+
+<style>
+  .product-card__image-hover {
+    transition: opacity 0.5s ease;
+  }
+  
+  @media (hover: none) {
+    .product-card__wishlist,
+    .product-card__compare {
+      opacity: 1 !important;
+    }
+    
+    .product-card__quick-view {
+      opacity: 1 !important;
+    }
+  }
+</style>

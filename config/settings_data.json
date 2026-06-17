@@ -1,0 +1,22 @@
+{
+  "current": {
+    "sections": {
+      "header": {
+        "type": "header",
+        "section_id": "header"
+      },
+      "footer": {
+        "type": "footer",
+        "section_id": "footer"
+      }
+    },
+    "content_for_index": [
+      {
+        "section_id": "header"
+      },
+      {
+        "section_id": "footer"
+      }
+    ]
+  }
+}

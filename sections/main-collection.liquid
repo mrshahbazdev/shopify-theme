@@ -1,0 +1,329 @@
+{%- comment -%}
+  Bano Theme - Main Collection Section
+  Product grid with filters and sorting
+{%- endcomment -%}
+
+<section 
+  id="MainCollection-{{ section.id }}"
+  class="section main-collection py-10"
+  data-section-id="{{ section.id }}"
+  data-section-type="collection"
+>
+  <div class="container-custom">
+    
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-border">
+      <!-- Results Count -->
+      <p class="text-sm text-text-muted" data-results-count>
+        {{ 'collection.products_count' | t: count: collection.products_count }}
+      </p>
+      
+      <div class="flex items-center gap-4">
+        <!-- Filter Toggle (Mobile) -->
+        {%- if section.settings.show_filters -%}
+          <button 
+            type="button"
+            class="lg:hidden btn-outline px-4 py-2 text-sm flex items-center gap-2"
+            data-filter-toggle
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            {{ 'collection.filter.title' | t }}
+          </button>
+        {%- endif -%}
+        
+        <!-- Sort Dropdown -->
+        {%- if section.settings.show_sort -%}
+          <div class="relative">
+            <label for="SortBy" class="sr-only">Sort by</label>
+            <select 
+              id="SortBy"
+              class="input py-2 pl-4 pr-10 text-sm cursor-pointer"
+              data-sort-select
+            >
+              <option value="manual">{{ 'collection.sort.featured' | t }}</option>
+              <option value="best-selling">{{ 'collection.sort.best_selling' | t }}</option>
+              <option value="title-ascending">{{ 'collection.sort.title_asc' | t }}</option>
+              <option value="title-descending">{{ 'collection.sort.title_desc' | t }}</option>
+              <option value="price-ascending">{{ 'collection.sort.price_asc' | t }}</option>
+              <option value="price-descending">{{ 'collection.sort.price_desc' | t }}</option>
+              <option value="created-descending">{{ 'collection.sort.created_desc' | t }}</option>
+              <option value="created-ascending">{{ 'collection.sort.created_asc' | t }}</option>
+            </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        {%- endif -%}
+        
+        <!-- View Toggle -->
+        <div class="hidden sm:flex items-center border border-border rounded-md overflow-hidden">
+          <button 
+            type="button"
+            class="p-2 {% if section.settings.default_view == 'grid' %}bg-primary-50 text-primary-600{% else %}text-text-muted hover:bg-background-secondary{% endif %}"
+            data-view-grid
+            aria-label="Grid view"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+            </svg>
+          </button>
+          <button 
+            type="button"
+            class="p-2 {% if section.settings.default_view == 'list' %}bg-primary-50 text-primary-600{% else %}text-text-muted hover:bg-background-secondary{% endif %}"
+            data-view-list
+            aria-label="List view"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="lg:grid lg:grid-cols-4 lg:gap-8">
+      
+      <!-- Filters Sidebar (Desktop) -->
+      {%- if section.settings.show_filters -%}
+        <aside class="hidden lg:block lg:col-span-1">
+          <div class="sticky top-24">
+            <h3 class="text-lg font-semibold text-text-primary mb-4">
+              {{ 'collection.filter.title' | t }}
+            </h3>
+            
+            <!-- Active Filters -->
+            {%- if current_tags.size > 0 -%}
+              <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-text-primary">{{ 'collection.filter.active_filters' | t }}</span>
+                  <a href="{{ collection.url }}" class="text-sm text-primary-600 hover:underline">
+                    {{ 'collection.filter.clear_all' | t }}
+                  </a>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  {%- for tag in current_tags -%}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary-50 text-primary-700 rounded text-sm">
+                      {{ tag | link_to_remove_tag: tag }}
+                    </span>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+            
+            <!-- Filter Groups -->
+            {%- for filter in collection.filters -%}
+              <div class="border-b border-border py-4">
+                <button 
+                  type="button"
+                  class="flex items-center justify-between w-full text-left font-medium text-text-primary mb-3"
+                  data-filter-group-toggle
+                >
+                  {{ filter.label }}
+                  <svg class="w-4 h-4 text-text-muted transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                
+                <div class="filter-group-content" data-filter-group>
+                  {%- case filter.type -%}
+                    {%- when 'price_range' -%}
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <input 
+                            type="number"
+                            placeholder="Min"
+                            class="input py-1.5 text-sm"
+                            data-filter-min
+                            value="{{ filter.min_value.value | money_without_currency }}"
+                          >
+                          <span class="text-text-muted">-</span>
+                          <input 
+                            type="number"
+                            placeholder="Max"
+                            class="input py-1.5 text-sm"
+                            data-filter-max
+                            value="{{ filter.max_value.value | money_without_currency }}"
+                          >
+                        </div>
+                      </div>
+                    {%- else -%}
+                      <ul class="space-y-2">
+                        {%- for filter_value in filter.values -%}
+                          <li>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                              <input 
+                                type="checkbox"
+                                class="w-4 h-4 rounded border-border text-primary-600 focus:ring-primary-500"
+                                value="{{ filter_value.value }}"
+                                {% if filter_value.active %}checked{% endif %}
+                                data-filter-checkbox
+                                data-filter="{{ filter.param_name }}"
+                              >
+                              <span class="text-sm text-text-secondary {% if filter_value.active %}text-primary-600 font-medium{% endif %}">
+                                {{ filter_value.label }}
+                              </span>
+                              <span class="text-xs text-text-muted ml-auto">
+                                ({{ filter_value.count }})
+                              </span>
+                            </label>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                  {%- endcase -%}
+                </div>
+              </div>
+            {%- endfor -%}
+          </div>
+        </aside>
+      {%- endif -%}
+      
+      <!-- Products Grid -->
+      <div class="lg:col-span-{% if section.settings.show_filters %}3{% else %}4{% endif %}">
+        {%- if collection.products.size > 0 -%}
+          <div 
+            class="product-grid grid grid-cols-2 md:grid-cols-{% if section.settings.show_filters %}2 lg:grid-cols-3{% else %}{{ section.settings.columns }}{% endif %} gap-4 md:gap-6"
+            data-product-grid
+          >
+            {%- paginate collection.products by section.settings.products_per_page -%}
+              {%- for product in collection.products -%}
+                {%- render 'product-card', product: product -%}
+              {%- endfor -%}
+            {%- endpaginate -%}
+          </div>
+          
+          <!-- Pagination -->
+          {%- if paginate.pages > 1 -%}
+            <nav class="flex justify-center mt-12" aria-label="Pagination">
+              <div class="flex items-center gap-2">
+                {%- if paginate.previous -%}
+                  <a href="{{ paginate.previous.url }}" class="p-2 border border-border rounded hover:border-primary-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </a>
+                {%- endif -%}
+                
+                {%- for part in paginate.parts -%}
+                  {%- if part.is_link -%}
+                    <a href="{{ part.url }}" class="px-4 py-2 border border-border rounded hover:border-primary-600 transition-colors">
+                      {{ part.title }}
+                    </a>
+                  {%- else -%}
+                    <span class="px-4 py-2 border border-primary-600 bg-primary-50 text-primary-600 rounded">
+                      {{ part.title }}
+                    </span>
+                  {%- endif -%}
+                {%- endfor -%}
+                
+                {%- if paginate.next -%}
+                  <a href="{{ paginate.next.url }}" class="p-2 border border-border rounded hover:border-primary-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                {%- endif -%}
+              </div>
+            </nav>
+          {%- endif -%}
+        {%- else -%}
+          <!-- Empty State -->
+          <div class="text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-6 bg-background-secondary rounded-full flex items-center justify-center">
+              <svg class="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-text-primary mb-2">{{ 'collection.empty.title' | t }}</h3>
+            <p class="text-text-muted mb-6">{{ 'collection.empty.subtitle' | t }}</p>
+            <a href="{{ collection.url }}" class="btn-primary px-6 py-3">
+              {{ 'collection.empty.clear_filters' | t }}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sort functionality
+    const sortSelect = document.querySelector('[data-sort-select]');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => {
+        const url = new URL(window.location);
+        url.searchParams.set('sort_by', sortSelect.value);
+        window.location.href = url.toString();
+      });
+    }
+
+    // View toggle
+    document.querySelector('[data-view-grid]')?.addEventListener('click', function() {
+      document.querySelector('[data-view-grid]').classList.add('bg-primary-50', 'text-primary-600');
+      document.querySelector('[data-view-grid]').classList.remove('text-text-muted');
+      document.querySelector('[data-view-list]').classList.remove('bg-primary-50', 'text-primary-600');
+      document.querySelector('[data-view-list]').classList.add('text-text-muted');
+      document.querySelector('[data-product-grid]')?.classList.remove('view-list');
+    });
+
+    document.querySelector('[data-view-list]')?.addEventListener('click', function() {
+      document.querySelector('[data-view-list]').classList.add('bg-primary-50', 'text-primary-600');
+      document.querySelector('[data-view-list]').classList.remove('text-text-muted');
+      document.querySelector('[data-view-grid]').classList.remove('bg-primary-50', 'text-primary-600');
+      document.querySelector('[data-view-grid]').classList.add('text-text-muted');
+      document.querySelector('[data-product-grid]')?.classList.add('view-list');
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Collection",
+  "tag": "section",
+  "class": "section-collection",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "default": true,
+      "label": "Show Filters"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sort",
+      "default": true,
+      "label": "Show Sort Dropdown"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24,
+      "label": "Products Per Page"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Columns (Desktop)"
+    },
+    {
+      "type": "select",
+      "id": "default_view",
+      "default": "grid",
+      "label": "Default View",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "list", "label": "List" }
+      ]
+    }
+  ]
+}
+{% endschema %}
